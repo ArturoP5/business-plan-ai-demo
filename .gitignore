@@ -64,3 +64,4 @@ BusinessPlan_*.pdf
 # Archivos rotos
 *.ROTO*
 *con_errores*
+.streamlit/secrets.toml
