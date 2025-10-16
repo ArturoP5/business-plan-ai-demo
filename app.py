@@ -7,6 +7,14 @@ Genera proyecciones financieras profesionales para PYMEs
 
 # from utils.analisis_fortalezas_riesgos import generar_analisis_fortalezas_riesgos, generar_hoja_ruta_valor
 import streamlit as st
+
+# Configuración de la página (debe ser lo primero)
+st.set_page_config(
+    page_title="ValuPro AI - Business Plan Generator",
+    page_icon="assets/icon_favicon_32.png",
+    layout="wide",
+    initial_sidebar_state="expanded"
+)
 import pandas as pd
 import io
 import plotly.graph_objects as go
