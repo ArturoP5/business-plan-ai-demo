@@ -1,0 +1,16 @@
+# Script para diagnosticar por qué el ratio Deuda/PN muestra 0
+
+print("=== DIAGNÓSTICO DEL RATIO DEUDA/PN ===")
+print("\nPosibles causas del ratio 0.00x:")
+print("1. La deuda se amortiza completamente en los primeros años")
+print("2. Los campos 'deuda_cp' y 'deuda_lp' no se están proyectando correctamente")
+print("3. La empresa genera suficiente caja para pagar toda la deuda")
+print("\nSegún el balance proyectado que mostraste:")
+print("• Año 1: Deuda CP = 511k, Deuda LP = 1,931k")
+print("• Año 2: Deuda CP = 212k, Deuda LP = 686k")
+print("• Año 3-5: Deuda CP = 0, Deuda LP = 0")
+print("\nEsto indica que la deuda se paga completamente para el año 3.")
+print("\nSOLUCIONES:")
+print("1. Verificar si la empresa debería mantener algo de deuda")
+print("2. Revisar los supuestos de amortización de deuda")
+print("3. Considerar refinanciación o nueva deuda en años futuros")

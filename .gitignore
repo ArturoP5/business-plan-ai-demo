@@ -1,0 +1,66 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+
+# Entornos virtuales
+venv/
+venv_demo/
+
+# IDE y OS
+.DS_Store
+.vscode/
+.idea/
+
+# TODOS los scripts auxiliares
+add_*.py
+agregar_*.py
+ajustar_*.py
+arreglar_*.py
+change_*.py
+clean_*.py
+complete_*.py
+consolidate_*.py
+corregir_*.py
+crear_*.py
+debug_*.py
+diagnose_*.py
+disable_*.py
+eliminar_*.py
+enhance_*.py
+ensure_*.py
+improve_*.py
+insertar_*.py
+integrar_*.py
+integrate_*.py
+limpiar_*.py
+list_*.py
+mejorar_*.py
+modificar_*.py
+pass_*.py
+recover_*.py
+remove_*.py
+revert_*.py
+
+# Archivos de texto/notas
+*.txt
+!requirements.txt
+
+# Backups
+*_backup*.py
+*.backup_*
+backups/
+backups_finales/
+archivos_temporales/
+APP Finalizada/
+
+# Excel temporales
+*.xlsx
+!PlantillaBusinessPlan_Profesional.xlsx
+
+# PDFs temporales
+BusinessPlan_*.pdf
+
+# Archivos rotos
+*.ROTO*
+*con_errores*
