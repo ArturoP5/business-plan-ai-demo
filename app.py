@@ -93,12 +93,6 @@ def check_password():
 if not check_password():
     st.stop()
 
-st.set_page_config(
-    page_title="ValuProIA",
-    page_icon="assets/icon_favicon_32.ico",
-    layout="wide",
-    initial_sidebar_state="expanded"
-)
 
 # ==================== FUNCIONES HELPER ====================
 def formato_numero(label, value=0, key=None, decimales=0, help_text=None, min_value=None, max_value=None):
