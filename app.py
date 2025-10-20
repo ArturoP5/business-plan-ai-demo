@@ -909,7 +909,7 @@ with st.sidebar:
 
     empresa_demo = st.selectbox(
         "Cargar empresa de ejemplo:",
-        ["Carga Manual", "📁 Cargar desde Excel", "🍕 Restaurante La Terraza", "💻 TechStart SaaS", "🛍️ ModaOnline Shop", "🏭 MetalPro Industrial"]
+        ["Carga Manual", "📁 Cargar desde Excel", "🍕 Restaurante La Terraza", "💻 TechStart SaaS", "🏭 MetalPro Industrial"]
     )
     
     # Inicializar datos_excel
