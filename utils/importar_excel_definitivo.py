@@ -188,16 +188,17 @@ def importar_excel_definitivo(archivo):
         # 8. PARÁMETROS
         df = pd.read_excel(archivo, sheet_name='Proyecciones_Parametros')
         param_dict = dict(zip(df['Parámetro'].fillna(''), df['Valor'].fillna(0)))
+        print("🔍 DEBUG importador - Parámetros leídos del Excel:")
+        for key, value in list(param_dict.items())[:10]:
+            print(f"  '{key}': {value}")
         
-        # Agregar proyecciones para compatibilidad
+        # Agregar proyecciones (TODO en un solo dict)
         datos['proyecciones'] = {
             'capex_año1': float(param_dict.get('CAPEX Año 1', 0)),
             'capex_año2': float(param_dict.get('CAPEX Año 2', 0)),
             'capex_año3': float(param_dict.get('CAPEX Año 3', 0)),
             'capex_año4': float(param_dict.get('CAPEX Año 4', 0)),
-            'capex_año5': float(param_dict.get('CAPEX Año 5', 0))
-        }
-        datos['parametros'] = {
+            'capex_año5': float(param_dict.get('CAPEX Año 5', 0)),
             'dias_cobro': int(param_dict.get('Días de cobro (DSO)', 60)),
             'dias_pago': int(param_dict.get('Días de pago (DPO)', 45)),
             'dias_inventario': int(param_dict.get('Días de inventario', 60)),
@@ -214,6 +215,27 @@ def importar_excel_definitivo(archivo):
                 float(param_dict.get('CAPEX Año 3', 0)),
                 float(param_dict.get('CAPEX Año 4', 0)),
                 float(param_dict.get('CAPEX Año 5', 0))
+            ],
+            'gastos_personal_proyectados': [
+                float(param_dict.get('Gastos Personal Año 1', 0)),
+                float(param_dict.get('Gastos Personal Año 2', 0)),
+                float(param_dict.get('Gastos Personal Año 3', 0)),
+                float(param_dict.get('Gastos Personal Año 4', 0)),
+                float(param_dict.get('Gastos Personal Año 5', 0))
+            ],
+            'gastos_generales_proyectados': [
+                float(param_dict.get('Gastos Generales Año 1', 0)),
+                float(param_dict.get('Gastos Generales Año 2', 0)),
+                float(param_dict.get('Gastos Generales Año 3', 0)),
+                float(param_dict.get('Gastos Generales Año 4', 0)),
+                float(param_dict.get('Gastos Generales Año 5', 0))
+            ],
+            'gastos_marketing_proyectados': [
+                float(param_dict.get('Gastos Marketing Año 1', 0)),
+                float(param_dict.get('Gastos Marketing Año 2', 0)),
+                float(param_dict.get('Gastos Marketing Año 3', 0)),
+                float(param_dict.get('Gastos Marketing Año 4', 0)),
+                float(param_dict.get('Gastos Marketing Año 5', 0))
             ],
             'nuevos_empleados': [
                 int(param_dict.get('Nuevos empleados Año 1', 0)),

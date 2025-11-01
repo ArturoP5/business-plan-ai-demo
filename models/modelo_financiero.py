@@ -97,7 +97,13 @@ class ModeloFinanciero:
         self.gastos_personal_historico = params_operativos.get('gastos_personal_historico', None)
         self.gastos_generales_historico = params_operativos.get('gastos_generales_historico', None)
         self.gastos_marketing_historico = params_operativos.get('gastos_marketing_historico', None)
+        
+        # Gastos proyectados (arrays de 5 años definidos por usuario)
+        self.gastos_personal_proyectados = params_operativos.get('gastos_personal_proyectados', None)
+        self.gastos_generales_proyectados = params_operativos.get('gastos_generales_proyectados', None)
+        self.gastos_marketing_proyectados = params_operativos.get('gastos_marketing_proyectados', None)
         self.ventas_historicas = params_operativos.get('ventas_historicas', [self.ingresos_iniciales])
+        print(f"🔍 Gastos proyectados recibidos: Personal={self.gastos_personal_proyectados}, Generales={self.gastos_generales_proyectados}, Marketing={self.gastos_marketing_proyectados}")
         self.otros_gastos = params_operativos.get('otros_gastos', 0)
                 
         # NUEVA ESTRUCTURA FINANCIERA COMPLETA
@@ -175,11 +181,53 @@ class ModeloFinanciero:
         ventas = self.ventas_historicas[año_idx]
         costos = ventas * self.costos_variables_pct
         
-        # Usar gastos históricos si están disponibles, sino usar valores únicos
-        gastos_personal = self.gastos_personal_historico[año_idx] if self.gastos_personal_historico and año_idx < len(self.gastos_personal_historico) else self.gastos_personal
-        gastos_generales = self.gastos_generales_historico[año_idx] if self.gastos_generales_historico and año_idx < len(self.gastos_generales_historico) else self.gastos_generales
-        gastos_marketing = self.gastos_marketing_historico[año_idx] if self.gastos_marketing_historico and año_idx < len(self.gastos_marketing_historico) else self.gastos_marketing
-        
+        # Usar gastos proyectados si están disponibles, sino históricos, sino crecimiento inteligente
+        if self.gastos_personal_proyectados and año_idx < len(self.gastos_personal_proyectados) and any(x > 0 for x in self.gastos_personal_proyectados):
+            gastos_personal = self.gastos_personal_proyectados[año_idx]
+        elif self.gastos_personal_historico and año_idx < len(self.gastos_personal_historico):
+            gastos_personal = self.gastos_personal_historico[año_idx]
+        else:
+            # Crecimiento inteligente basado en ventas
+            if año_idx > 0:
+                crecimiento_ventas = (self.ventas_historicas[año_idx] - self.ventas_historicas[año_idx-1]) / self.ventas_historicas[año_idx-1]
+                # Personal crece en escalones
+                if crecimiento_ventas < 0.10:
+                    factor_personal = 1 + (crecimiento_ventas * 0.5)
+                else:
+                    factor_personal = 1 + (crecimiento_ventas * 0.7)
+                # Límites razonables
+                factor_personal = max(0.90, min(factor_personal, 1.50))
+                gastos_personal = self.gastos_personal * factor_personal
+            else:
+                gastos_personal = self.gastos_personal
+            
+        if self.gastos_generales_proyectados and año_idx < len(self.gastos_generales_proyectados) and any(x > 0 for x in self.gastos_generales_proyectados):
+            gastos_generales = self.gastos_generales_proyectados[año_idx]
+        elif self.gastos_generales_historico and año_idx < len(self.gastos_generales_historico):
+            gastos_generales = self.gastos_generales_historico[año_idx]
+        else:
+            # Economías de escala
+            if año_idx > 0:
+                crecimiento_ventas = (self.ventas_historicas[año_idx] - self.ventas_historicas[año_idx-1]) / self.ventas_historicas[año_idx-1]
+                factor_generales = 1 + (crecimiento_ventas * 0.40)
+                factor_generales = max(0.90, min(factor_generales, 1.50))
+                gastos_generales = self.gastos_generales * factor_generales
+            else:
+                gastos_generales = self.gastos_generales
+            
+        if self.gastos_marketing_proyectados and año_idx < len(self.gastos_marketing_proyectados) and any(x > 0 for x in self.gastos_marketing_proyectados):
+            gastos_marketing = self.gastos_marketing_proyectados[año_idx]
+        elif self.gastos_marketing_historico and año_idx < len(self.gastos_marketing_historico):
+            gastos_marketing = self.gastos_marketing_historico[año_idx]
+        else:
+            # Marketing correlacionado con crecimiento
+            if año_idx > 0:
+                crecimiento_ventas = (self.ventas_historicas[año_idx] - self.ventas_historicas[año_idx-1]) / self.ventas_historicas[año_idx-1]
+                factor_marketing = 1 + (crecimiento_ventas * 0.80)
+                factor_marketing = max(0.90, min(factor_marketing, 1.50))
+                gastos_marketing = self.gastos_marketing * factor_marketing
+            else:
+                gastos_marketing = self.gastos_marketing
         return ventas - costos - gastos_personal - gastos_generales - gastos_marketing
 
     def actualizar_datos_sectoriales(self):

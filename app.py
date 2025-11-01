@@ -942,6 +942,21 @@ with st.sidebar:
                 datos_excel = importar_excel_definitivo(uploaded_file)
                 if datos_excel:
                     st.success("✅ Datos cargados correctamente del Excel")
+                    # DEBUG: Verificar qué se leyó del Excel
+                    st.write("🔍 DEBUG Excel importado:")
+                    st.write(f"Crecimientos: {datos_excel.get('proyecciones', {}).get('crecimiento_ventas', 'NO ENCONTRADO')}")
+                    st.write(f"Keys slider después de actualizar:")
+                    st.write(f"  Año 1: {st.session_state.get('slider_crecimiento_año1', 'NO EXISTE')}")
+                    st.write(f"  Año 2: {st.session_state.get('slider_crecimiento_año2', 'NO EXISTE')}")
+                    # Forzar actualización de sliders con valores del Excel
+                    if 'proyecciones' in datos_excel and 'crecimiento_ventas' in datos_excel['proyecciones']:
+                        crecimientos = datos_excel['proyecciones']['crecimiento_ventas']
+                        # Actualizar directamente los valores de los sliders usando sus keys
+                        st.session_state['slider_crecimiento_año1'] = float(crecimientos[0])
+                        st.session_state['slider_crecimiento_año2'] = float(crecimientos[1])
+                        st.session_state['slider_crecimiento_año3'] = float(crecimientos[2])
+                        st.session_state['slider_crecimiento_año4'] = float(crecimientos[3])
+                        st.session_state['slider_crecimiento_año5'] = float(crecimientos[4])
             except Exception as e:
                 st.error(f"❌ Error al leer el archivo: {str(e)}")
                 datos_excel = None
@@ -1053,6 +1068,7 @@ with st.sidebar:
         }
         guardar_datos_demo(datos_excel)
         st.success("✅ Cargado: Restaurante La Terraza (Hostelería)")
+        
 
     elif empresa_demo == "💻 TechStart SaaS":
         datos_excel = {
@@ -1355,6 +1371,68 @@ with st.sidebar:
         default_capex_año3 = datos_excel['proyecciones']['capex_año3']
         default_capex_año4 = datos_excel['proyecciones']['capex_año4']
         default_capex_año5 = datos_excel['proyecciones']['capex_año5']
+        # Valores de crecimiento de ventas
+        if 'crecimiento_ventas' in datos_excel.get('proyecciones', {}):
+            default_crecimiento_año1 = datos_excel['proyecciones']['crecimiento_ventas'][0]
+            default_crecimiento_año2 = datos_excel['proyecciones']['crecimiento_ventas'][1]
+            default_crecimiento_año3 = datos_excel['proyecciones']['crecimiento_ventas'][2]
+            default_crecimiento_año4 = datos_excel['proyecciones']['crecimiento_ventas'][3]
+            default_crecimiento_año5 = datos_excel['proyecciones']['crecimiento_ventas'][4]
+        else:
+            default_crecimiento_año1 = 10.0
+            default_crecimiento_año2 = 8.0
+            default_crecimiento_año3 = 6.0
+            default_crecimiento_año4 = 5.0
+            default_crecimiento_año5 = 4.0
+        
+        # Guardar en session_state para que los sliders los usen
+        st.session_state['default_crecimiento_año1'] = default_crecimiento_año1
+        st.session_state['default_crecimiento_año2'] = default_crecimiento_año2
+        st.session_state['default_crecimiento_año3'] = default_crecimiento_año3
+        st.session_state['default_crecimiento_año4'] = default_crecimiento_año4
+        st.session_state['default_crecimiento_año5'] = default_crecimiento_año5
+        # Valores de gastos proyectados
+        if 'proyecciones' in datos_excel and 'gastos_personal_proyectados' in datos_excel.get('proyecciones', {}):
+            default_gastos_personal_año1 = datos_excel['proyecciones']['gastos_personal_proyectados'][0]
+            default_gastos_personal_año2 = datos_excel['proyecciones']['gastos_personal_proyectados'][1]
+            default_gastos_personal_año3 = datos_excel['proyecciones']['gastos_personal_proyectados'][2]
+            default_gastos_personal_año4 = datos_excel['proyecciones']['gastos_personal_proyectados'][3]
+            default_gastos_personal_año5 = datos_excel['proyecciones']['gastos_personal_proyectados'][4]
+        else:
+            gp_base = datos_excel['pyl_historico']['gastos_personal'][-1] if 'pyl_historico' in datos_excel and 'gastos_personal' in datos_excel['pyl_historico'] else 100000
+            default_gastos_personal_año1 = int(gp_base * 1.05)
+            default_gastos_personal_año2 = int(gp_base * 1.10)
+            default_gastos_personal_año3 = int(gp_base * 1.15)
+            default_gastos_personal_año4 = int(gp_base * 1.20)
+            default_gastos_personal_año5 = int(gp_base * 1.25)
+        
+        if 'proyecciones' in datos_excel and 'gastos_generales_proyectados' in datos_excel.get('proyecciones', {}):
+            default_gastos_generales_año1 = datos_excel['proyecciones']['gastos_generales_proyectados'][0]
+            default_gastos_generales_año2 = datos_excel['proyecciones']['gastos_generales_proyectados'][1]
+            default_gastos_generales_año3 = datos_excel['proyecciones']['gastos_generales_proyectados'][2]
+            default_gastos_generales_año4 = datos_excel['proyecciones']['gastos_generales_proyectados'][3]
+            default_gastos_generales_año5 = datos_excel['proyecciones']['gastos_generales_proyectados'][4]
+        else:
+            gg_base = datos_excel['pyl_historico']['gastos_generales'][-1] if 'pyl_historico' in datos_excel and 'gastos_generales' in datos_excel['pyl_historico'] else 50000
+            default_gastos_generales_año1 = int(gg_base * 1.03)
+            default_gastos_generales_año2 = int(gg_base * 1.06)
+            default_gastos_generales_año3 = int(gg_base * 1.09)
+            default_gastos_generales_año4 = int(gg_base * 1.12)
+            default_gastos_generales_año5 = int(gg_base * 1.15)
+        
+        if 'proyecciones' in datos_excel and 'gastos_marketing_proyectados' in datos_excel.get('proyecciones', {}):
+            default_gastos_marketing_año1 = datos_excel['proyecciones']['gastos_marketing_proyectados'][0]
+            default_gastos_marketing_año2 = datos_excel['proyecciones']['gastos_marketing_proyectados'][1]
+            default_gastos_marketing_año3 = datos_excel['proyecciones']['gastos_marketing_proyectados'][2]
+            default_gastos_marketing_año4 = datos_excel['proyecciones']['gastos_marketing_proyectados'][3]
+            default_gastos_marketing_año5 = datos_excel['proyecciones']['gastos_marketing_proyectados'][4]
+        else:
+            gm_base = datos_excel['pyl_historico']['gastos_marketing'][-1] if 'pyl_historico' in datos_excel and 'gastos_marketing' in datos_excel['pyl_historico'] else 30000
+            default_gastos_marketing_año1 = int(gm_base * 1.10)
+            default_gastos_marketing_año2 = int(gm_base * 1.20)
+            default_gastos_marketing_año3 = int(gm_base * 1.30)
+            default_gastos_marketing_año4 = int(gm_base * 1.40)
+            default_gastos_marketing_año5 = int(gm_base * 1.50)
         # Valores del balance - activo
         default_tesoreria = int(datos_excel['balance_activo']['tesoreria_inicial'])
         default_clientes = int(datos_excel['balance_activo']['clientes_inicial'])
@@ -2516,13 +2594,11 @@ with st.sidebar:
                         'dispuesto': 0,
                         'tipo_interes': 4.5
                     })
-                    st.rerun()
-            with col3:
-                if len(st.session_state.lineas_financiacion) > 1:
-                    if st.button("➖ Eliminar última", key="del_linea"):
-                        st.session_state.lineas_financiacion.pop()
-                        st.rerun()
-
+                with col3:
+                    if len(st.session_state.lineas_financiacion) > 1:
+                        if st.button("➖ Eliminar última", key="del_linea"):
+                            st.session_state.lineas_financiacion.pop()
+                
             # Crear las líneas de financiación
             total_limite = 0
             total_dispuesto = 0
@@ -3326,6 +3402,178 @@ with st.sidebar:
     with tab_proyecciones:
         st.markdown("### 📈 PROYECCIONES")
         st.markdown("---")
+        st.markdown("#### 📈 Proyección de Ventas (máx. 200%)")
+        st.info("💡 Define el crecimiento esperado de ventas para cada año. Estos valores se usarán en las proyecciones del P&L.")
+        
+        col1, col2 = st.columns(2)
+        with col1:
+            crecimiento_año1 = st.slider(
+                "Crecimiento Año 1 (%)",
+                key="slider_crecimiento_año1",
+                min_value=-20.0,
+                max_value=200.0,
+                value=st.session_state.get('slider_crecimiento_año1', 10.0),
+                step=0.5,
+                help="Crecimiento esperado de ventas en el primer año"
+            )
+            crecimiento_año2 = st.slider(
+                "Crecimiento Año 2 (%)",
+                key="slider_crecimiento_año2",
+                min_value=-20.0,
+                max_value=200.0,
+                value=st.session_state.get('slider_crecimiento_año2', 8.0),
+                step=0.5
+            )
+            crecimiento_año3 = st.slider(
+                "Crecimiento Año 3 (%)",
+                key="slider_crecimiento_año3",
+                min_value=-20.0,
+                max_value=200.0,
+                value=st.session_state.get('slider_crecimiento_año3', 6.0),
+                step=0.5
+            )
+        with col2:
+            crecimiento_año4 = st.slider(
+                "Crecimiento Año 4 (%)",
+                key="slider_crecimiento_año4",
+                min_value=-20.0,
+                max_value=200.0,
+                value=st.session_state.get('slider_crecimiento_año4', 5.0),
+                step=0.5
+            )
+            crecimiento_año5 = st.slider(
+                "Crecimiento Año 5 (%)",
+                key="slider_crecimiento_año5",
+                min_value=-20.0,
+                max_value=200.0,
+                value=st.session_state.get('slider_crecimiento_año5', 4.0),
+                step=0.5
+            )
+            crecimiento_promedio = (crecimiento_año1 + crecimiento_año2 + crecimiento_año3 + crecimiento_año4 + crecimiento_año5) / 5
+            st.metric("CAGR Proyectado", f"{crecimiento_promedio:.1f}%", help="Crecimiento Anual Compuesto promedio")
+
+        st.markdown("---")
+
+        st.markdown("#### 💼 Proyección Gastos de Personal")
+        st.info("💡 Define los gastos de personal proyectados para cada año.")
+        
+        col1, col2 = st.columns(2)
+        with col1:
+            gastos_personal_año1 = st.number_input(
+                f"Personal Año 1 ({get_simbolo_moneda()})",
+                min_value=0,
+                value=int(default_gastos_personal_año1) if 'default_gastos_personal_año1' in locals() else 0,
+                step=10000,
+                help="Gastos de personal proyectados año 1"
+            )
+            gastos_personal_año2 = st.number_input(
+                f"Personal Año 2 ({get_simbolo_moneda()})",
+                min_value=0,
+                value=int(default_gastos_personal_año2) if 'default_gastos_personal_año2' in locals() else 0,
+                step=10000
+            )
+            gastos_personal_año3 = st.number_input(
+                f"Personal Año 3 ({get_simbolo_moneda()})",
+                min_value=0,
+                value=int(default_gastos_personal_año3) if 'default_gastos_personal_año3' in locals() else 0,
+                step=10000
+            )
+        with col2:
+            gastos_personal_año4 = st.number_input(
+                f"Personal Año 4 ({get_simbolo_moneda()})",
+                min_value=0,
+                value=int(default_gastos_personal_año4) if 'default_gastos_personal_año4' in locals() else 0,
+                step=10000
+            )
+            gastos_personal_año5 = st.number_input(
+                f"Personal Año 5 ({get_simbolo_moneda()})",
+                min_value=0,
+                value=int(default_gastos_personal_año5) if 'default_gastos_personal_año5' in locals() else 0,
+                step=10000
+            )
+
+        st.markdown("---")
+        
+        st.markdown("#### 🏢 Proyección Gastos Generales")
+        st.info("💡 Define los gastos generales proyectados para cada año.")
+        
+        col1, col2 = st.columns(2)
+        with col1:
+            gastos_generales_año1 = st.number_input(
+                f"Generales Año 1 ({get_simbolo_moneda()})",
+                min_value=0,
+                value=int(default_gastos_generales_año1) if 'default_gastos_generales_año1' in locals() else 0,
+                step=5000,
+                help="Gastos generales proyectados año 1"
+            )
+            gastos_generales_año2 = st.number_input(
+                f"Generales Año 2 ({get_simbolo_moneda()})",
+                min_value=0,
+                value=int(default_gastos_generales_año2) if 'default_gastos_generales_año2' in locals() else 0,
+                step=5000
+            )
+            gastos_generales_año3 = st.number_input(
+                f"Generales Año 3 ({get_simbolo_moneda()})",
+                min_value=0,
+                value=int(default_gastos_generales_año3) if 'default_gastos_generales_año3' in locals() else 0,
+                step=5000
+            )
+        with col2:
+            gastos_generales_año4 = st.number_input(
+                f"Generales Año 4 ({get_simbolo_moneda()})",
+                min_value=0,
+                value=int(default_gastos_generales_año4) if 'default_gastos_generales_año4' in locals() else 0,
+                step=5000
+            )
+            gastos_generales_año5 = st.number_input(
+                f"Generales Año 5 ({get_simbolo_moneda()})",
+                min_value=0,
+                value=int(default_gastos_generales_año5) if 'default_gastos_generales_año5' in locals() else 0,
+                step=5000
+            )
+
+        st.markdown("---")
+        
+        st.markdown("#### 📢 Proyección Gastos de Marketing")
+        st.info("💡 Define los gastos de marketing proyectados para cada año.")
+        
+        col1, col2 = st.columns(2)
+        with col1:
+            gastos_marketing_año1 = st.number_input(
+                f"Marketing Año 1 ({get_simbolo_moneda()})",
+                min_value=0,
+                value=int(default_gastos_marketing_año1) if 'default_gastos_marketing_año1' in locals() else 0,
+                step=5000,
+                help="Gastos de marketing proyectados año 1"
+            )
+            gastos_marketing_año2 = st.number_input(
+                f"Marketing Año 2 ({get_simbolo_moneda()})",
+                min_value=0,
+                value=int(default_gastos_marketing_año2) if 'default_gastos_marketing_año2' in locals() else 0,
+                step=5000
+            )
+            gastos_marketing_año3 = st.number_input(
+                f"Marketing Año 3 ({get_simbolo_moneda()})",
+                min_value=0,
+                value=int(default_gastos_marketing_año3) if 'default_gastos_marketing_año3' in locals() else 0,
+                step=5000
+            )
+        with col2:
+            gastos_marketing_año4 = st.number_input(
+                f"Marketing Año 4 ({get_simbolo_moneda()})",
+                min_value=0,
+                value=int(default_gastos_marketing_año4) if 'default_gastos_marketing_año4' in locals() else 0,
+                step=5000
+            )
+            gastos_marketing_año5 = st.number_input(
+                f"Marketing Año 5 ({get_simbolo_moneda()})",
+                min_value=0,
+                value=int(default_gastos_marketing_año5) if 'default_gastos_marketing_año5' in locals() else 0,
+                step=5000
+            )
+
+        st.markdown("---")
+
         st.markdown("#### Plan de Inversiones (CAPEX)")
         
         col1, col2 = st.columns(2)
@@ -3678,7 +3926,7 @@ if generar_proyeccion or st.session_state.get("metodo_valoracion") in ["estandar
     # Añadir factor extraordinario al crecimiento histórico
     
     # Función de IA para proyección inteligente
-    def proyectar_crecimiento_ia(datos_empresa, datos_macro, datos_sector, historico_ventas):
+    def proyectar_crecimiento_ia(datos_empresa, datos_macro, datos_sector, historico_ventas, crecimiento_base_usuario=None):
         """
         Proyección profesional de crecimiento con análisis completo
         Retorna dict con escenarios: optimista, base, pesimista
@@ -3983,11 +4231,48 @@ if generar_proyeccion or st.session_state.get("metodo_valoracion") in ["estandar
             
             return tasas
         
+        # Si el usuario definió un crecimiento base, usarlo
+        if crecimiento_base_usuario:
+            print(f"🔍 DEBUG: Usando crecimiento usuario: {crecimiento_base_usuario}")
+            # Usar el crecimiento del usuario como escenario base
+            escenario_base_usuario = crecimiento_base_usuario
+            
+            # Generar optimista y pesimista ajustados por IA
+            factor_macro = 1 + (datos_macro.get('pib', 2.0) / 100)
+            factor_sector = 1 + (datos_sector.get('crecimiento_sectorial', 5.0) / 100)
+            
+            # Ajustes por fase empresa
+            if fase_empresa == "startup":
+                ajuste_optimista = 1.3
+                ajuste_pesimista = 0.6
+            elif fase_empresa == "crecimiento":
+                ajuste_optimista = 1.2
+                ajuste_pesimista = 0.7
+            else:
+                ajuste_optimista = 1.15
+                ajuste_pesimista = 0.85
+            
+            # Ajustar por ciclo económico
+            if ciclo == "expansion":
+                ajuste_optimista *= 1.1
+                ajuste_pesimista *= 1.05
+            elif ciclo == "recesion":
+                ajuste_optimista *= 0.9
+                ajuste_pesimista *= 0.95
+            
+            # Generar escenarios basados en usuario
+            escenarios = {
+                "base": escenario_base_usuario,
+                "optimista": [round(tasa * ajuste_optimista * factor_macro, 1) for tasa in escenario_base_usuario],
+                "pesimista": [round(max(tasa * ajuste_pesimista / factor_sector, -10.0), 1) for tasa in escenario_base_usuario]
+            }
+        else:
+            # Calcular automáticamente (lógica original)
         # Generar tres escenarios
-        escenarios = {
-            "optimista": calcular_tasas_escenario(1.2),
-            "base": calcular_tasas_escenario(1.0),
-            "pesimista": calcular_tasas_escenario(0.8)
+            escenarios = {
+                "optimista": calcular_tasas_escenario(1.2),
+                "base": calcular_tasas_escenario(1.0),
+                "pesimista": calcular_tasas_escenario(0.8)
         }
         
         # Retornar todos los escenarios y metadata
@@ -4033,12 +4318,22 @@ if generar_proyeccion or st.session_state.get("metodo_valoracion") in ["estandar
     datos_macro = api_collector.get_datos_macroeconomicos()
     datos_sector = api_collector.get_datos_sectoriales(sector.lower())
     
-    # Proyectar con IA
+    # Crear array con crecimiento base del usuario
+    crecimiento_base_usuario = [
+        crecimiento_año1,
+        crecimiento_año2,
+        crecimiento_año3,
+        crecimiento_año4,
+        crecimiento_año5
+    ]
+    
+    # Proyectar con IA usando el crecimiento del usuario como base
     resultado_proyeccion = proyectar_crecimiento_ia(
         datos_empresa,
         datos_macro,
         datos_sector,
-        ventas_historicas
+        ventas_historicas,
+        crecimiento_base_usuario
     )
     
     
@@ -4111,6 +4406,9 @@ if generar_proyeccion or st.session_state.get("metodo_valoracion") in ["estandar
         'gastos_personal_historico': gastos_personal_historico,
         'gastos_generales_historico': gastos_generales_historico,
         'gastos_marketing_historico': gastos_marketing_historico,
+        'gastos_personal_proyectados': [gastos_personal_año1, gastos_personal_año2, gastos_personal_año3, gastos_personal_año4, gastos_personal_año5],
+        'gastos_generales_proyectados': [gastos_generales_año1, gastos_generales_año2, gastos_generales_año3, gastos_generales_año4, gastos_generales_año5],
+        'gastos_marketing_proyectados': [gastos_marketing_año1, gastos_marketing_año2, gastos_marketing_año3, gastos_marketing_año4, gastos_marketing_año5],
         'tesoreria': tesoreria_inicial,
         'clientes': clientes_inicial,
         'inventario': inventario_inicial,
