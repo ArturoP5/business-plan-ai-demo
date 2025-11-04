@@ -175,6 +175,46 @@ class APIDataCollector:
             
         return None
 
+    def get_spread_bonos_pais(self, pais: str = 'España') -> float:
+        """Obtiene spread de bonos soberanos vs Alemania desde FRED"""
+        SERIES_FRED = {
+            'España': 'IRLTLT01ESM156N',
+            'Alemania': 'IRLTLT01DEM156N',
+            'Francia': 'IRLTLT01FRM156N',
+            'Italia': 'IRLTLT01ITM156N',
+            'Portugal': 'IRLTLT01PTM156N'
+        }
+        
+        try:
+            api_key = "9c6469b2a78cb5b302288c5c3595e346"
+            if pais not in SERIES_FRED:
+                return 0.005
+            
+            serie_pais = SERIES_FRED[pais]
+            url_pais = f"https://api.stlouisfed.org/fred/series/observations?series_id={serie_pais}&api_key={api_key}&file_type=json&limit=1&sort_order=desc"
+            
+            response_pais = requests.get(url_pais, timeout=10)
+            if response_pais.status_code == 200:
+                data_pais = response_pais.json()
+                if data_pais.get('observations'):
+                    yield_pais = float(data_pais['observations'][0]['value'])
+                    
+                    url_de = f"https://api.stlouisfed.org/fred/series/observations?series_id=IRLTLT01DEM156N&api_key={api_key}&file_type=json&limit=1&sort_order=desc"
+                    response_de = requests.get(url_de, timeout=10)
+                    
+                    if response_de.status_code == 200:
+                        data_de = response_de.json()
+                        if data_de.get('observations'):
+                            yield_de = float(data_de['observations'][0]['value'])
+                            spread = (yield_pais - yield_de) / 100
+                            print(f"✓ Spread {pais} vs Alemania: {spread*100:.2f}%")
+                            return max(0, spread)
+            
+            return 0.005
+        except Exception as e:
+            print(f"⚠️  Error spread: {e}")
+            return 0.005
+
     def get_datos_sectoriales(self, sector: str) -> Dict[str, any]:
         """
         Obtiene datos sectoriales

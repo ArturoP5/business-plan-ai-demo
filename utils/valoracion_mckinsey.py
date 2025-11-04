@@ -5,6 +5,7 @@ Basado en "Valuation: Measuring and Managing the Value of Companies"
 
 import pandas as pd
 import numpy as np
+from utils.api_data_collector import APIDataCollector
 import numpy_financial as npf
 from typing import Dict, Tuple
 
@@ -28,6 +29,29 @@ class ValoracionMcKinsey:
         self.modelo = modelo_financiero
         self.sector = modelo_financiero.sector
         self.beta = self.BETAS_SECTORIALES.get(self.sector, 1.0)
+        
+        # Primas de riesgo país (fallback si API falla)
+        self.PRIMAS_PAIS = {
+            'España': 0.005,
+            'Alemania': 0.0,
+            'Francia': 0.003,
+            'Italia': 0.012,
+            'Portugal': 0.008,
+            'Reino Unido': 0.004,
+            'Estados Unidos': 0.002
+        }
+        
+        # Primas de riesgo sector
+        self.PRIMAS_SECTOR = {
+            'Retail': 0.010,
+            'Hostelería': 0.015,
+            'Tecnología': 0.005,
+            'Industrial': 0.008,
+            'Ecommerce': 0.012,
+            'Servicios': 0.007,
+            'Consultoría': 0.006,
+            'Automoción': 0.010
+        }
     
     def calcular_wacc_mckinsey(self, params_mercado: Dict = None) -> Tuple[float, Dict]:
         """
@@ -47,7 +71,20 @@ class ValoracionMcKinsey:
         # Prima por tamaño (empresas <10M€)
         size_premium = 0.02 if self.modelo.ingresos_iniciales < 10000000 else 0
         
-        cost_of_equity = rf + self.beta * rm_rf + size_premium
+        # Riesgo país desde FRED API
+        pais = self.modelo.pais if hasattr(self.modelo, 'pais') else 'España'
+        try:
+            api_collector = APIDataCollector()
+            riesgo_pais = api_collector.get_spread_bonos_pais(pais)
+        except Exception as e:
+            print(f"⚠️  Error obteniendo spread FRED: {e}, usando fallback")
+            riesgo_pais = self.PRIMAS_PAIS.get(pais, 0.005)
+        
+        # Riesgo sector
+        riesgo_sector = self.PRIMAS_SECTOR.get(self.sector, 0.008)
+        
+        # CAPM completo
+        cost_of_equity = rf + self.beta * rm_rf + size_premium + riesgo_pais + riesgo_sector
         
         # Prima adicional conservadora para PYMEs
         if self.modelo.ingresos_iniciales < 250000000:  # Empresas <250M€

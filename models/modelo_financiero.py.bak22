@@ -427,14 +427,14 @@ class ModeloFinanciero:
         self.calcular_ratios()
         
         # Realizar valoración
-        # valoracion = self.realizar_valoracion_bancainversion()  # Se hace después con McKinsey
+        valoracion = self.realizar_valoracion_bancainversion()
         
         return {
             'pyl': self.pyl,
             'balance': self.balance,
             'cash_flow': self.cash_flow,
             'ratios': self.ratios,
-            # 'valoracion': valoracion  # Se hace después con McKinsey
+            'valoracion': valoracion
         }
     
     def _get_crecimiento_sector(self) -> float:

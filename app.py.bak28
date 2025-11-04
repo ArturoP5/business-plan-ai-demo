@@ -4642,6 +4642,26 @@ if generar_proyeccion or st.session_state.get("metodo_valoracion") in ["estandar
         # Generar resumen ejecutivo
         # resumen = modelo.generar_resumen_ejecutivo()  # El modelo espera columnas originales
         # Crear resumen simple con los datos transformados
+        resumen = f"""
+        RESUMEN EJECUTIVO - {nombre_empresa}
+        {'=' * 50}
+
+        Sector: {sector}
+        Proyección a 5 años
+
+        RESULTADOS CLAVE:
+        - Ventas año 5: {get_simbolo_moneda()}{pyl['Ventas'].iloc[-1]:,.0f}
+        - EBITDA año 5: {get_simbolo_moneda()}{pyl['EBITDA'].iloc[-1]:,.0f} ({pyl['EBITDA %'].iloc[-1]:.1f}%)
+        - Beneficio año 5: {get_simbolo_moneda()}{pyl['Beneficio Neto'].iloc[-1]:,.0f}
+
+        CRECIMIENTO:
+        - CAGR Ventas: {metricas['cagr_ventas']:.1f}%
+        - Margen EBITDA promedio: {metricas['margen_ebitda_promedio']:.1f}%
+
+        VALORACIÓN:
+        - Valor empresa: {get_simbolo_moneda()}{valoracion_prof.get('valoracion_final', 0):,.0f}
+        - TIR proyecto: {metricas['tir_proyecto']:.1f}%
+        """
     
    # Crear analisis_ia con la nueva información
 
@@ -4705,28 +4725,6 @@ if generar_proyeccion or st.session_state.get("metodo_valoracion") in ["estandar
         else:
             # Usar valoración estándar
             valoracion_prof = modelo.realizar_valoracion_mckinsey() if hasattr(modelo, 'realizar_valoracion_mckinsey') else {}
-
-        # Generar resumen ejecutivo
-        resumen = f"""
-        RESUMEN EJECUTIVO - {nombre_empresa}
-        {'=' * 50}
-
-        Sector: {sector}
-        Proyección a 5 años
-
-        RESULTADOS CLAVE:
-        - Ventas año 5: {get_simbolo_moneda()}{pyl['Ventas'].iloc[-1]:,.0f}
-        - EBITDA año 5: {get_simbolo_moneda()}{pyl['EBITDA'].iloc[-1]:,.0f} ({pyl['EBITDA %'].iloc[-1]:.1f}%)
-        - Beneficio año 5: {get_simbolo_moneda()}{pyl['Beneficio Neto'].iloc[-1]:,.0f}
-
-        CRECIMIENTO:
-        - CAGR Ventas: {metricas['cagr_ventas']:.1f}%
-        - Margen EBITDA promedio: {metricas['margen_ebitda_promedio']:.1f}%
-
-        VALORACIÓN:
-        - Valor empresa: {get_simbolo_moneda()}{valoracion_prof.get('valoracion_final', 0):,.0f}
-        - TIR proyecto: {metricas['tir_proyecto']:.1f}%
-        """
         tir_real = valoracion_prof.get('dcf_detalle', {}).get('tir', metricas.get('tir_proyecto', 0))
         valor_empresa_calc = valoracion_prof.get('valoracion_final', 0)
         multiplo_ventas = valor_empresa_calc / ventas_historicas if ventas_historicas > 0 else 0
@@ -4781,7 +4779,7 @@ if generar_proyeccion or st.session_state.get("metodo_valoracion") in ["estandar
         'cash_flow': cash_flow,
         'ratios': ratios,
         'resultado_mckinsey': st.session_state.get('resultado_mck', {}),
-        'valoracion': valoracion_prof,
+        'valoracion': valoracion,
         'valoracion_profesional': valoracion_prof,
         # 'datos_empresa': empresa_seleccionada,  # TODO: obtener datos correctos
         'metricas': metricas,
@@ -6243,7 +6241,7 @@ def compilar_datos_para_ia(datos_empresa, pyl, balance, ratios, valoracion, camp
         # Valoración
         'valor_empresa': valoracion_prof.get('valoracion_final', 0),
         'wacc': valoracion_prof.get('dcf_detalle', {}).get('wacc', 0.1),
-        'valor_terminal': valoracion_prof.get('dcf_detalle', {}).get('terminal_value', 0),
+        'valor_terminal': valoracion.get('terminal_value', 0),
         
         # Nuevos campos estratégicos
         'modelo_negocio': campos_estrategicos.get('modelo_negocio', ''),

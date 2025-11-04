@@ -434,7 +434,7 @@ class ModeloFinanciero:
             'balance': self.balance,
             'cash_flow': self.cash_flow,
             'ratios': self.ratios,
-            # 'valoracion': valoracion  # Se hace después con McKinsey
+            'valoracion': valoracion
         }
     
     def _get_crecimiento_sector(self) -> float:
