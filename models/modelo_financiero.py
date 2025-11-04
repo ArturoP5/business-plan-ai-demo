@@ -182,6 +182,7 @@ class ModeloFinanciero:
         costos = ventas * self.costos_variables_pct
         
         # Usar gastos proyectados si están disponibles, sino históricos, sino crecimiento inteligente
+        print(f"🔍 DEBUG Año {año_idx}: gastos_personal_proyectados existe? {self.gastos_personal_proyectados is not None}, len={len(self.gastos_personal_proyectados) if self.gastos_personal_proyectados else 0}, any>0? {any(x > 0 for x in self.gastos_personal_proyectados) if self.gastos_personal_proyectados else False}")
         if self.gastos_personal_proyectados and año_idx < len(self.gastos_personal_proyectados) and any(x > 0 for x in self.gastos_personal_proyectados):
             gastos_personal = self.gastos_personal_proyectados[año_idx]
         elif self.gastos_personal_historico and año_idx < len(self.gastos_personal_historico):
@@ -505,92 +506,116 @@ class ModeloFinanciero:
             sector_key = self.sector if self.sector in eficiencias_sector else 'Otro'
             eficiencias = eficiencias_sector[sector_key]
             # Aplicar economías de escala si es empresa madura
+            # Usar gastos proyectados con prioridad
+            año_idx = año - 1
+            
+            # PERSONAL
+            if self.gastos_personal_proyectados and año_idx < len(self.gastos_personal_proyectados):
+                gastos_personal = self.gastos_personal_proyectados[año_idx]
+                print(f"✅ Usando gasto personal proyectado año {año}: {gastos_personal:,.0f}")
+            else:
+                gastos_personal = self.gastos_personal * inflacion_acum
+            
+            # GENERALES
+            if self.gastos_generales_proyectados and año_idx < len(self.gastos_generales_proyectados):
+                gastos_generales = self.gastos_generales_proyectados[año_idx]
+                print(f"✅ Usando gasto general proyectado año {año}: {gastos_generales:,.0f}")
+            else:
+                gastos_generales = self.gastos_generales * inflacion_acum
+            
+            # MARKETING
+            if self.gastos_marketing_proyectados and año_idx < len(self.gastos_marketing_proyectados):
+                gastos_marketing = self.gastos_marketing_proyectados[año_idx]
+                print(f"✅ Usando gasto marketing proyectado año {año}: {gastos_marketing:,.0f}")
+            else:
+                gastos_marketing = self.gastos_marketing * inflacion_acum
             if es_empresa_madura:
                 # Ajustar eficiencias según escenario
                 ajuste_escenario = 1.0
                 if self.tipo_escenario == "Pesimista":
                     ajuste_escenario = 0.5  # Menos eficiencia en escenario pesimista
                 elif self.tipo_escenario == "Optimista":
-                    ajuste_escenario = 1.2  # Más eficiencia en escenario optimista
-                    
-                # Aplicar estructura sectorial para empresas maduras
-                if self.sector == "Industrial" or self.sector == "Automoción":
-                    # 50-70% variables (media: 60%)
-                    gastos_personal = self.gastos_personal * (0.40 * inflacion_acum + 0.60 * factor_actividad)
-                    gastos_generales = self.gastos_generales * (0.35 * inflacion_acum + 0.65 * factor_actividad)
-                elif self.sector == "Tecnología":
-                    # 10-30% variables (media: 20%)
-                    gastos_personal = self.gastos_personal * (0.80 * inflacion_acum + 0.20 * factor_actividad)
-                    gastos_generales = self.gastos_generales * (0.75 * inflacion_acum + 0.25 * factor_actividad)
-                elif self.sector == "Ecommerce":
-                    # 60-80% variables (media: 70%)
-                    gastos_personal = self.gastos_personal * (0.30 * inflacion_acum + 0.70 * factor_actividad)
-                    gastos_generales = self.gastos_generales * (0.25 * inflacion_acum + 0.75 * factor_actividad)
-                elif self.sector == "Hostelería":
-                    # 55-65% variables (media: 60%)
-                    gastos_personal = self.gastos_personal * (0.40 * inflacion_acum + 0.60 * factor_actividad)
-                    gastos_generales = self.gastos_generales * (0.35 * inflacion_acum + 0.65 * factor_actividad)
-                elif self.sector == "Retail":
-                    # 55-70% variables (media: 62%)
-                    gastos_personal = self.gastos_personal * (0.38 * inflacion_acum + 0.62 * factor_actividad)
-                    gastos_generales = self.gastos_generales * (0.35 * inflacion_acum + 0.65 * factor_actividad)
-                elif self.sector == "Consultoría" or self.sector == "Servicios":
-                    # 60-85% variables (media: 72%)
-                    gastos_personal = self.gastos_personal * (0.28 * inflacion_acum + 0.72 * factor_actividad)
-                    gastos_generales = self.gastos_generales * (0.60 * inflacion_acum + 0.40 * factor_actividad)
-                else:
-                    # Sector "Otro": usar factor_eficiencia original
-                    factor_eficiencia_personal = 1 + (factor_actividad - 1) * eficiencias['personal'] * ajuste_escenario
-                    gastos_personal = self.gastos_personal * factor_eficiencia_personal * inflacion_acum
-                    factor_eficiencia_general = 1 + (factor_actividad - 1) * eficiencias['general'] * ajuste_escenario
-                    gastos_generales = self.gastos_generales * factor_eficiencia_general * inflacion_acum
+                    pass  # Placeholder
                 
-                # Marketing siempre es más variable
-                factor_eficiencia_marketing = 1 + (factor_actividad - 1) * eficiencias['marketing'] * ajuste_escenario
-                gastos_marketing = self.gastos_marketing * factor_eficiencia_marketing * inflacion_acum
-            else:
+                # OLD: ajuste_escenario = 1.2  # Más eficiencia en escenario optimista
+                # OLD:                 # Aplicar estructura sectorial para empresas maduras
+                # OLD: if self.sector == "Industrial" or self.sector == "Automoción":
+                    # 50-70% variables (media: 60%)
+                # OLD: gastos_personal = self.gastos_personal * (0.40 * inflacion_acum + 0.60 * factor_actividad)
+                # OLD: gastos_generales = self.gastos_generales * (0.35 * inflacion_acum + 0.65 * factor_actividad)
+                # OLD: elif self.sector == "Tecnología":
+                    # 10-30% variables (media: 20%)
+                # OLD: gastos_personal = self.gastos_personal * (0.80 * inflacion_acum + 0.20 * factor_actividad)
+                # OLD: gastos_generales = self.gastos_generales * (0.75 * inflacion_acum + 0.25 * factor_actividad)
+                # OLD: elif self.sector == "Ecommerce":
+                    # 60-80% variables (media: 70%)
+                # OLD: gastos_personal = self.gastos_personal * (0.30 * inflacion_acum + 0.70 * factor_actividad)
+                # OLD: gastos_generales = self.gastos_generales * (0.25 * inflacion_acum + 0.75 * factor_actividad)
+                # OLD: elif self.sector == "Hostelería":
+                    # 55-65% variables (media: 60%)
+                # OLD: gastos_personal = self.gastos_personal * (0.40 * inflacion_acum + 0.60 * factor_actividad)
+                # OLD: gastos_generales = self.gastos_generales * (0.35 * inflacion_acum + 0.65 * factor_actividad)
+                # OLD: elif self.sector == "Retail":
+                    # 55-70% variables (media: 62%)
+                # OLD: gastos_personal = self.gastos_personal * (0.38 * inflacion_acum + 0.62 * factor_actividad)
+                # OLD: gastos_generales = self.gastos_generales * (0.35 * inflacion_acum + 0.65 * factor_actividad)
+                # OLD: elif self.sector == "Consultoría" or self.sector == "Servicios":
+                    # 60-85% variables (media: 72%)
+                # OLD: gastos_personal = self.gastos_personal * (0.28 * inflacion_acum + 0.72 * factor_actividad)
+                # OLD: gastos_generales = self.gastos_generales * (0.60 * inflacion_acum + 0.40 * factor_actividad)
+                # OLD: else:
+                    # Sector "Otro": usar factor_eficiencia original
+                # OLD: factor_eficiencia_personal = 1 + (factor_actividad - 1) * eficiencias['personal'] * ajuste_escenario
+                # OLD: gastos_personal = self.gastos_personal * factor_eficiencia_personal * inflacion_acum
+                # OLD: factor_eficiencia_general = 1 + (factor_actividad - 1) * eficiencias['general'] * ajuste_escenario
+                # OLD: gastos_generales = self.gastos_generales * factor_eficiencia_general * inflacion_acum
+                # OLD:                 # Marketing siempre es más variable
+                # OLD: factor_eficiencia_marketing = 1 + (factor_actividad - 1) * eficiencias['marketing'] * ajuste_escenario
+                # OLD: gastos_marketing = self.gastos_marketing * factor_eficiencia_marketing * inflacion_acum
+                # OLD: else:
                 # Empresas jóvenes: ajustar sensibilidad según escenario
-                if self.tipo_escenario == "Pesimista":
+                # OLD: if self.tipo_escenario == "Pesimista":
                     # Mayor sensibilidad de costos en escenario pesimista
-                    gastos_personal = self.gastos_personal * (0.75 * inflacion_acum + 0.45 * factor_actividad)
-                    gastos_generales = self.gastos_generales * (0.85 * inflacion_acum + 0.30 * factor_actividad)
-                    gastos_marketing = self.gastos_marketing * (0.30 * inflacion_acum + 0.50 * factor_actividad)
-                elif self.tipo_escenario == "Optimista":
+                # OLD: gastos_personal = self.gastos_personal * (0.75 * inflacion_acum + 0.45 * factor_actividad)
+                # OLD: gastos_generales = self.gastos_generales * (0.85 * inflacion_acum + 0.30 * factor_actividad)
+                # OLD: gastos_marketing = self.gastos_marketing * (0.30 * inflacion_acum + 0.50 * factor_actividad)
+                # OLD: elif self.tipo_escenario == "Optimista":
                     # Mejor control de costos en escenario optimista
-                    gastos_personal = self.gastos_personal * (0.60 * inflacion_acum + 0.25 * factor_actividad)
-                    gastos_generales = self.gastos_generales * (0.75 * inflacion_acum + 0.15 * factor_actividad)
-                    gastos_marketing = self.gastos_marketing * (0.45 * inflacion_acum + 0.65 * factor_actividad)
-                else:
+                # OLD: gastos_personal = self.gastos_personal * (0.60 * inflacion_acum + 0.25 * factor_actividad)
+                # OLD: gastos_generales = self.gastos_generales * (0.75 * inflacion_acum + 0.15 * factor_actividad)
+                # OLD: gastos_marketing = self.gastos_marketing * (0.45 * inflacion_acum + 0.65 * factor_actividad)
+                # OLD: else:
                     # Escenario base: aplicar estructura sectorial también a empresas jóvenes
-                    if self.sector == "Industrial" or self.sector == "Automoción":
-                        gastos_personal = self.gastos_personal * (0.40 * inflacion_acum + 0.60 * factor_actividad)
-                        gastos_generales = self.gastos_generales * (0.35 * inflacion_acum + 0.65 * factor_actividad)
-                    elif self.sector == "Tecnología":
-                        gastos_personal = self.gastos_personal * (0.80 * inflacion_acum + 0.20 * factor_actividad)
-                        gastos_generales = self.gastos_generales * (0.75 * inflacion_acum + 0.25 * factor_actividad)
-                    elif self.sector == "Ecommerce":
-                        gastos_personal = self.gastos_personal * (0.30 * inflacion_acum + 0.70 * factor_actividad)
-                        gastos_generales = self.gastos_generales * (0.25 * inflacion_acum + 0.75 * factor_actividad)
-                    elif self.sector == "Hostelería":
-                        gastos_personal = self.gastos_personal * (0.40 * inflacion_acum + 0.60 * factor_actividad)
-                        gastos_generales = self.gastos_generales * (0.35 * inflacion_acum + 0.65 * factor_actividad)
-                    elif self.sector == "Retail":
-                        gastos_personal = self.gastos_personal * (0.38 * inflacion_acum + 0.62 * factor_actividad)
-                        gastos_generales = self.gastos_generales * (0.35 * inflacion_acum + 0.65 * factor_actividad)
-                    elif self.sector == "Consultoría" or self.sector == "Servicios":
-                        gastos_personal = self.gastos_personal * (0.28 * inflacion_acum + 0.72 * factor_actividad)
-                        gastos_generales = self.gastos_generales * (0.60 * inflacion_acum + 0.40 * factor_actividad)
-                    else:
+                # OLD: if self.sector == "Industrial" or self.sector == "Automoción":
+                # OLD: gastos_personal = self.gastos_personal * (0.40 * inflacion_acum + 0.60 * factor_actividad)
+                # OLD: gastos_generales = self.gastos_generales * (0.35 * inflacion_acum + 0.65 * factor_actividad)
+                # OLD: elif self.sector == "Tecnología":
+                # OLD: gastos_personal = self.gastos_personal * (0.80 * inflacion_acum + 0.20 * factor_actividad)
+                # OLD: gastos_generales = self.gastos_generales * (0.75 * inflacion_acum + 0.25 * factor_actividad)
+                # OLD: elif self.sector == "Ecommerce":
+                # OLD: gastos_personal = self.gastos_personal * (0.30 * inflacion_acum + 0.70 * factor_actividad)
+                # OLD: gastos_generales = self.gastos_generales * (0.25 * inflacion_acum + 0.75 * factor_actividad)
+                # OLD: elif self.sector == "Hostelería":
+                # OLD: gastos_personal = self.gastos_personal * (0.40 * inflacion_acum + 0.60 * factor_actividad)
+                # OLD: gastos_generales = self.gastos_generales * (0.35 * inflacion_acum + 0.65 * factor_actividad)
+                # OLD: elif self.sector == "Retail":
+                # OLD: gastos_personal = self.gastos_personal * (0.38 * inflacion_acum + 0.62 * factor_actividad)
+                # OLD: gastos_generales = self.gastos_generales * (0.35 * inflacion_acum + 0.65 * factor_actividad)
+                # OLD: elif self.sector == "Consultoría" or self.sector == "Servicios":
+                # OLD: gastos_personal = self.gastos_personal * (0.28 * inflacion_acum + 0.72 * factor_actividad)
+                # OLD: gastos_generales = self.gastos_generales * (0.60 * inflacion_acum + 0.40 * factor_actividad)
+                # OLD: else:
                         # Sector "Otro": valores conservadores
-                        gastos_personal = self.gastos_personal * (0.65 * inflacion_acum + 0.35 * factor_actividad)
-                        gastos_generales = self.gastos_generales * (0.80 * inflacion_acum + 0.20 * factor_actividad)
-                    
-                    # Marketing más variable
-                    gastos_marketing = self.gastos_marketing * (0.40 * inflacion_acum + 0.60 * factor_actividad)
+                # OLD: gastos_personal = self.gastos_personal * (0.65 * inflacion_acum + 0.35 * factor_actividad)
+                # OLD: gastos_generales = self.gastos_generales * (0.80 * inflacion_acum + 0.20 * factor_actividad)
+                # OLD:                     # Marketing más variable
+                # OLD: gastos_marketing = self.gastos_marketing * (0.40 * inflacion_acum + 0.60 * factor_actividad)
+            # Total otros gastos
+                # OLD: otros_gastos = gastos_generales + gastos_marketing
+                # OLD:             # Calcular EBITDA correctamente para todos los años
             # Total otros gastos
             otros_gastos = gastos_generales + gastos_marketing
             
-            # Calcular EBITDA correctamente para todos los años
             # Calcular EBITDA = Ventas - Costos - Gastos
             ebitda = ingresos - coste_ventas - gastos_personal - otros_gastos
             margen_ebitda = (ebitda / ingresos * 100) if ingresos > 0 else 0

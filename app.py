@@ -4497,7 +4497,30 @@ if generar_proyeccion or st.session_state.get("metodo_valoracion") in ["estandar
         'gastos_personal': gastos_personal,
         'gastos_generales': gastos_generales,
         'gastos_marketing': gastos_marketing,
-        'otros_gastos': datos_empresa.get('otros_gastos', 0),        
+        'otros_gastos': datos_empresa.get('otros_gastos', 0),
+        
+        # Gastos proyectados (arrays de 5 años)
+        'gastos_personal_proyectados': [
+            gastos_personal_año1,
+            gastos_personal_año2,
+            gastos_personal_año3,
+            gastos_personal_año4,
+            gastos_personal_año5
+        ],
+        'gastos_generales_proyectados': [
+            gastos_generales_año1,
+            gastos_generales_año2,
+            gastos_generales_año3,
+            gastos_generales_año4,
+            gastos_generales_año5
+        ],
+        'gastos_marketing_proyectados': [
+            gastos_marketing_año1,
+            gastos_marketing_año2,
+            gastos_marketing_año3,
+            gastos_marketing_año4,
+            gastos_marketing_año5
+        ],
         'prestamos_lp': [
             {
                 'principal': prestamo_principal,
@@ -4557,6 +4580,7 @@ if generar_proyeccion or st.session_state.get("metodo_valoracion") in ["estandar
     # Crear modelo y generar proyecciones
     with st.spinner('Generando proyecciones financieras...'):
         modelo = ModeloFinanciero(empresa_info, escenario_macro, params_operativos)
+        print(f"🔍 DEBUG: Modelo creado. Gastos proyectados en modelo: {modelo.gastos_personal_proyectados}")
         
     
         # Generar todas las proyecciones
