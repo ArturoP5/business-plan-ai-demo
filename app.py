@@ -908,7 +908,7 @@ with st.sidebar:
     """)
 
     empresa_demo = st.selectbox(
-        "Cargar empresa de ejemplo:",
+        "Cargar Empresa:",
         ["Carga Manual", "📁 Cargar desde Excel", "🍕 Restaurante La Terraza", "💻 TechStart SaaS", "🏭 MetalPro Industrial"]
     )
     
@@ -982,12 +982,6 @@ with st.sidebar:
                             st.session_state["dias_pago"] = int(pc["dias_pago"])
                         if "dias_inventario" in pc:
                             st.session_state["dias_inventario"] = int(pc["dias_inventario"])
-                    # DEBUG: Verificar qué se leyó del Excel
-                    st.write("🔍 DEBUG Excel importado:")
-                    st.write(f"Crecimientos: {datos_excel.get('proyecciones', {}).get('crecimiento_ventas', 'NO ENCONTRADO')}")
-                    st.write(f"Keys slider después de actualizar:")
-                    st.write(f"  Año 1: {st.session_state.get('slider_crecimiento_año1', 'NO EXISTE')}")
-                    st.write(f"  Año 2: {st.session_state.get('slider_crecimiento_año2', 'NO EXISTE')}")
                     # Forzar actualización de sliders con valores del Excel
                     if 'proyecciones' in datos_excel and 'crecimiento_ventas' in datos_excel['proyecciones']:
                         crecimientos = datos_excel['proyecciones']['crecimiento_ventas']
@@ -5291,10 +5285,43 @@ if generar_proyeccion or st.session_state.get("metodo_valoracion") in ["estandar
                     st.metric("WACC Total", f"{wacc:.2f}%")
                     st.write("**Fórmula:**")
                     st.write("WACC = Kd × (1-T) × D/(D+E) + Ke × E/(D+E)")
-                
-                with col_wacc2:
+                    st.write("")
                     for componente, valor in wacc_componentes.items():
-                        st.write(f"**{componente}:** {valor}%")            
+                        st.write(f"**{componente}:** {valor}%")
+                
+                with col_wacc2:            
+                    
+                    # Desglose del Ke (CAPM)
+                    st.write("---")
+                    with st.expander("📊 Desglose del Coste del Equity (Ke) - Ver explicación"):
+                        st.markdown("""
+                        El **Coste del Equity (Ke)** se calcula usando el modelo CAPM (Capital Asset Pricing Model):
+                        
+                        • **Tasa libre riesgo (Rf):** Rentabilidad de bonos del estado sin riesgo (base de toda inversión)
+                        • **Beta sectorial (β):** Volatilidad del sector vs mercado (β>1 = más volátil)
+                        • **Prima de mercado (Rm-Rf):** Retorno adicional por invertir en acciones vs bonos
+                        • **Riesgo país:** Spread de bonos soberanos (riesgo específico del país)
+                        • **Riesgo sector:** Prima adicional por riesgos específicos del sector
+                        • **Prima tamaño:** Ajuste para empresas pequeñas (<10M€ ventas)
+                        • **Prima PYME:** Prima conservadora para PYMEs (<250M€)
+                        
+                        💡 **Fórmula:** Ke = Rf + β×(Rm-Rf) + Riesgo País + Riesgo Sector + Primas
+                        """)
+                    
+                    ke_desglose = {
+                        "Tasa libre riesgo (Rf)": f"{componentes.get('rf', 0.03)*100:.2f}%",
+                        "Beta sectorial (β)": f"{componentes.get('beta', 1.0):.2f}",
+                        "Prima de mercado (Rm-Rf)": f"{componentes.get('prima_mercado', 0.065)*100:.2f}%",
+                        "Riesgo país (Spread)": f"{componentes.get('riesgo_pais', 0.005)*100:.2f}%",
+                        "Riesgo sector": f"{componentes.get('riesgo_sector', 0.008)*100:.2f}%",
+                        "Prima tamaño": f"{componentes.get('size_premium', 0)*100:.2f}%",
+                        "Prima PYME": f"{componentes.get('prima_pyme', 0)*100:.2f}%"
+                    }
+                    
+                    for item, valor in ke_desglose.items():
+                        st.write(f"• **{item}:** {valor}")
+                    
+                    st.caption("💡 Ke = Rf + β×(Rm-Rf) + Riesgo País + Riesgo Sector + Primas")
             with val_tab3:
                 st.subheader("Análisis de Sensibilidad")
                 

@@ -114,7 +114,12 @@ class ValoracionMcKinsey:
             'cost_of_equity': cost_of_equity,
             'cost_of_debt_after_tax': cost_of_debt_after_tax,
             'beta': self.beta,
+            'rf': rf,
+            'prima_mercado': rm_rf,
             'size_premium': size_premium,
+            'riesgo_pais': riesgo_pais,
+            'riesgo_sector': riesgo_sector,
+            'prima_pyme': prima_pyme if self.modelo.ingresos_iniciales < 250000000 else 0,
             'weights': {'equity': target_e_v, 'debt': target_d_v}
         }
         
