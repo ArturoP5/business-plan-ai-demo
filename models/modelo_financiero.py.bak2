@@ -463,7 +463,6 @@ class ModeloFinanciero:
                 # Aplicar crecimiento también en el año 1
                 factor_macro = 1 + (self.pib_crecimiento - 2) / 100 * 0.3
                 crecimiento_ajustado = self.crecimiento_por_año[0] * factor_macro
-                print(f"🔍 DEBUG: ingresos_iniciales={self.ingresos_iniciales:,.0f}, factor_macro={factor_macro:.4f}")
                 ingresos = self.ingresos_iniciales * (1 + crecimiento_ajustado / 100)
                 print(f"DEBUG: Año {año}, Ingresos calculados: {ingresos:,.0f}, Crecimiento ajustado: {crecimiento_ajustado}")
             else:

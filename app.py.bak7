@@ -942,46 +942,6 @@ with st.sidebar:
                 datos_excel = importar_excel_definitivo(uploaded_file)
                 if datos_excel:
                     st.success("✅ Datos cargados correctamente del Excel")
-                    # Actualizar widgets de ventas con valores del Excel
-                    if "pyl_historico" in datos_excel and "ventas" in datos_excel["pyl_historico"]:
-                        ventas_hist = datos_excel["pyl_historico"]["ventas"]
-                        st.session_state["ventas_1"] = float(ventas_hist[2]) if len(ventas_hist) > 2 else 0
-                        st.session_state["ventas_2"] = float(ventas_hist[1]) if len(ventas_hist) > 1 else 0
-                        st.session_state["ventas_3"] = float(ventas_hist[0]) if len(ventas_hist) > 0 else 0
-                    # Actualizar gastos históricos con años del Excel
-                    if "pyl_historico" in datos_excel:
-                        años_excel = [2023, 2024, 2025]
-                        if "gastos_personal" in datos_excel["pyl_historico"]:
-                            gp = datos_excel["pyl_historico"]["gastos_personal"]
-                            for idx, año in enumerate(años_excel):
-                                if idx < len(gp):
-                                    st.session_state[f"gastos_personal_{año}"] = float(gp[idx])
-                        if "gastos_generales" in datos_excel["pyl_historico"]:
-                            gg = datos_excel["pyl_historico"]["gastos_generales"]
-                            for idx, año in enumerate(años_excel):
-                                if idx < len(gg):
-                                    st.session_state[f"gastos_generales_{año}"] = float(gg[idx])
-                        if "gastos_marketing" in datos_excel["pyl_historico"]:
-                            gm = datos_excel["pyl_historico"]["gastos_marketing"]
-                            for idx, año in enumerate(años_excel):
-                                if idx < len(gm):
-                                    st.session_state[f"gastos_marketing_{año}"] = float(gm[idx])
-                    # Actualizar datos laborales
-                    if "datos_laborales" in datos_excel:
-                        dl = datos_excel["datos_laborales"]
-                        if "num_empleados" in dl:
-                            st.session_state["num_empleados_sidebar"] = int(dl["num_empleados"])
-                        if "rotacion_anual" in dl:
-                            st.session_state["rotacion_anual"] = float(dl["rotacion_anual"])
-                    # Actualizar ciclo de conversión
-                    if "proyecciones" in datos_excel:
-                        pc = datos_excel["proyecciones"]
-                        if "dias_cobro" in pc:
-                            st.session_state["dias_cobro"] = int(pc["dias_cobro"])
-                        if "dias_pago" in pc:
-                            st.session_state["dias_pago"] = int(pc["dias_pago"])
-                        if "dias_inventario" in pc:
-                            st.session_state["dias_inventario"] = int(pc["dias_inventario"])
                     # DEBUG: Verificar qué se leyó del Excel
                     st.write("🔍 DEBUG Excel importado:")
                     st.write(f"Crecimientos: {datos_excel.get('proyecciones', {}).get('crecimiento_ventas', 'NO ENCONTRADO')}")
@@ -1322,7 +1282,6 @@ with st.sidebar:
 
     # Inicializar defaults antes de cargar datos
     default_ventas = [0, 0, 0]  # Se sobrescribirá si hay Excel o Demo
-
     # Preparar valores por defecto desde Excel o valores estándar
     if 'datos_excel' in locals() and datos_excel:
         # Cargar líneas de financiación desde Excel si existen
@@ -1981,8 +1940,7 @@ with st.sidebar:
             max_value=100.0,
             value=10.0,
             step=1.0,
-            help="% de empleados que dejan la empresa al año",
-            key="rotacion_anual"
+            help="% de empleados que dejan la empresa al año"
         )
     
     # NUEVO: Campos para reestructuración
@@ -3734,13 +3692,16 @@ with st.sidebar:
         st.markdown("#### Ciclo de Conversión de Efectivo")
         col1, col2, col3 = st.columns(3)
         with col1:
-            dias_cobro = st.number_input("Días de cobro", 0, 365, int(default_dias_cobro) if "default_dias_cobro" in locals() else 60, help="Días promedio de cobro a clientes", key="dias_cobro")
+            dias_cobro = st.number_input("Días de cobro", 0, 365, int(default_dias_cobro) if "default_dias_cobro" in locals() else 60, help="Días promedio de cobro a clientes")
         with col2:
-            dias_pago = st.number_input("Días de pago", 0, 365, int(default_dias_pago) if "default_dias_pago" in locals() else 30, help="Días promedio de pago a proveedores", key="dias_pago")
+            dias_pago = st.number_input("Días de pago", 0, 365, int(default_dias_pago) if "default_dias_pago" in locals() else 30, help="Días promedio de pago a proveedores")
         with col3:
-            dias_stock = st.number_input("Días de stock", 0, 365, int(default_dias_inventario) if "default_dias_inventario" in locals() else 45, help="Días de inventario promedio", key="dias_inventario")
+            dias_stock = st.number_input("Días de stock", 0, 365, int(default_dias_inventario) if "default_dias_inventario" in locals() else 45, help="Días de inventario promedio")
         
         # Guardar en session_state
+        st.session_state["dias_cobro"] = dias_cobro
+        st.session_state["dias_pago"] = dias_pago
+        st.session_state["dias_inventario"] = dias_stock
     
     # Verificar estado de las APIs
 

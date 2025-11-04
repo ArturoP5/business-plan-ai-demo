@@ -971,8 +971,6 @@ with st.sidebar:
                         dl = datos_excel["datos_laborales"]
                         if "num_empleados" in dl:
                             st.session_state["num_empleados_sidebar"] = int(dl["num_empleados"])
-                        if "rotacion_anual" in dl:
-                            st.session_state["rotacion_anual"] = float(dl["rotacion_anual"])
                     # Actualizar ciclo de conversión
                     if "proyecciones" in datos_excel:
                         pc = datos_excel["proyecciones"]
@@ -1981,8 +1979,7 @@ with st.sidebar:
             max_value=100.0,
             value=10.0,
             step=1.0,
-            help="% de empleados que dejan la empresa al año",
-            key="rotacion_anual"
+            help="% de empleados que dejan la empresa al año"
         )
     
     # NUEVO: Campos para reestructuración
@@ -3741,6 +3738,9 @@ with st.sidebar:
             dias_stock = st.number_input("Días de stock", 0, 365, int(default_dias_inventario) if "default_dias_inventario" in locals() else 45, help="Días de inventario promedio", key="dias_inventario")
         
         # Guardar en session_state
+        st.session_state["dias_cobro"] = dias_cobro
+        st.session_state["dias_pago"] = dias_pago
+        st.session_state["dias_inventario"] = dias_stock
     
     # Verificar estado de las APIs
 

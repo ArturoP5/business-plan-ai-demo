@@ -971,8 +971,6 @@ with st.sidebar:
                         dl = datos_excel["datos_laborales"]
                         if "num_empleados" in dl:
                             st.session_state["num_empleados_sidebar"] = int(dl["num_empleados"])
-                        if "rotacion_anual" in dl:
-                            st.session_state["rotacion_anual"] = float(dl["rotacion_anual"])
                     # Actualizar ciclo de conversión
                     if "proyecciones" in datos_excel:
                         pc = datos_excel["proyecciones"]
@@ -1976,13 +1974,12 @@ with st.sidebar:
         )
         
         rotacion_anual = st.number_input(
-            "Rotación anual esperada (%)",
+            "Rotación anual esperada (%, key="rotacion_anual")",
             min_value=0.0,
             max_value=100.0,
             value=10.0,
             step=1.0,
-            help="% de empleados que dejan la empresa al año",
-            key="rotacion_anual"
+            help="% de empleados que dejan la empresa al año"
         )
     
     # NUEVO: Campos para reestructuración

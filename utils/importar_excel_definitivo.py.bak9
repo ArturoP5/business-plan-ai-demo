@@ -189,7 +189,6 @@ def importar_excel_definitivo(archivo):
         df = pd.read_excel(archivo, sheet_name='Proyecciones_Parametros')
         param_dict = dict(zip(df['Parámetro'].fillna(''), df['Valor'].fillna(0)))
         print("🔍 DEBUG importador - Parámetros leídos del Excel:")
-        print(f"🔍 DEBUG importador: Ventas históricas = {datos.get("pyl_historico", {}).get("ventas", "NO ENCONTRADO")}")
         for key, value in list(param_dict.items())[:10]:
             print(f"  '{key}': {value}")
         
