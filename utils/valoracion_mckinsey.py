@@ -255,21 +255,41 @@ class ValoracionMcKinsey:
         deuda_neta = self.modelo.calcular_deuda_total(1) - self.modelo.tesoreria_inicial
         equity_value = enterprise_value - deuda_neta
         
-        # Calcular TIR del proyecto
-        flujos_tir = [-enterprise_value]  # Inversión inicial
-        for fcf in fcf_data:
-            flujos_tir.append(fcf["fcf"])
-        flujos_tir.append(valor_terminal)  # Valor terminal al final
-        print(f"  Flujos TIR McKinsey: {[f"€{f:,.0f}" for f in flujos_tir]}")\
+        # Calcular TIR del proyecto (retorno sobre equity)
+        # TIR = tasa donde NPV de flujos al equity = equity_value
+        # Flujos al equity = FCF - servicio deuda + nueva deuda
+        
+        # Para simplificar, usamos FCF libre (asumiendo estructura deuda constante)
+        flujos_equity = []
+        for i, fcf in enumerate(fcf_data):
+            # Año 1-5: FCF operativo disponible para equity
+            flujos_equity.append(fcf["fcf"])
+        
+        # Año 5: Agregar valor terminal
+        flujos_equity[-1] += valor_terminal
+        
+        print(f"  Flujos Equity para TIR: {[f'€{f:,.0f}' for f in flujos_equity]}")
         
         try:
-            tir = npf.irr(flujos_tir) * 100  # En porcentaje
-            print(f"  TIR cruda de npf.irr: {tir}")
-            if np.isnan(tir) or tir < -100 or tir > 100:
-                tir = 0
+            # TIR sobre equity_value como inversión
+            if equity_value > 0:
+                flujos_tir_completos = [-equity_value] + flujos_equity
+                tir = npf.irr(flujos_tir_completos) * 100
+                print(f"  TIR sobre Equity: {tir:.2f}%")
+            else:
+                # Si equity es negativo, calcular TIR solo de flujos operativos
+                tir = npf.irr(flujos_equity) * 100
+                print(f"  TIR operativa (sin inversión): {tir:.2f}%")
+            
+            if np.isnan(tir) or tir < -100 or tir > 1000:
+                # Si TIR no converge, usar aproximación ROIC
+                roic_avg = np.mean([f['roic'] for f in fcf_data])
+                tir = roic_avg
+                print(f"  TIR no convergió, usando ROIC promedio: {tir:.2f}%")
         except Exception as e:
-            print(f"  Error calculando TIR: {e}")        
-            tir = 0
+            print(f"  Error calculando TIR: {e}")
+            # Usar ROIC como proxy
+            tir = np.mean([f['roic'] for f in fcf_data])
         return {
             'enterprise_value': enterprise_value,
             'equity_value': equity_value,

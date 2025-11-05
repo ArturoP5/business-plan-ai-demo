@@ -818,8 +818,30 @@ class ModeloFinanciero:
             dividendos = beneficio_neto * self.payout_ratio if beneficio_neto > 0 else 0
             patrimonio_neto = patrimonio_neto_anterior + beneficio_neto - dividendos
             
-            # Otros pasivos
-            otros_pasivos = ingresos * 0.03
+            # Otros pasivos corrientes (más realistas)
+            # Incluye: impuestos por pagar, seguridad social, acreedores varios
+            impuestos_por_pagar = beneficio_neto * 0.25 * 0.5  # 50% del impuesto anual
+            seguridad_social = pyl_año['gastos_personal'].values[0] * 0.3 / 12  # 30% SS, 1 mes
+            # Acreedores varios - ajustado por tamaño empresa
+            if ingresos < 2_000_000:  # Micro (<€2M)
+                pct_acreedores = 0.06  # 6% - bajo poder negociación
+            elif ingresos < 10_000_000:  # Pequeña (€2-10M)
+                pct_acreedores = 0.04  # 4% - poder moderado
+            elif ingresos < 50_000_000:  # Mediana (€10-50M)
+                pct_acreedores = 0.025  # 2.5% - buen poder
+            else:  # Grande (>€50M)
+                pct_acreedores = 0.015  # 1.5% - alto poder
+            
+            acreedores_varios = ingresos * pct_acreedores
+            provisiones = ebitda * 0.05 if ebitda > 0 else 0  # 5% EBITDA en provisiones
+            
+            otros_pasivos_corrientes = impuestos_por_pagar + seguridad_social + acreedores_varios + provisiones
+            
+            # Otros pasivos no corrientes (provisiones LP, ingresos diferidos)
+            otros_pasivos_nc = ingresos * 0.01
+            
+            # Total otros pasivos para el balance
+            otros_pasivos = otros_pasivos_corrientes
             
             # 6. CALCULAR NECESIDADES DE FINANCIACIÓN
             total_activo_sin_tesoreria = (
@@ -843,7 +865,7 @@ class ModeloFinanciero:
             tesoreria_minima = min(tesoreria_minima_ventas, tesoreria_minima_dias)
             
             # Balance objetivo
-            pasivo_sin_deuda = proveedores + otros_pasivos
+            pasivo_sin_deuda = proveedores + otros_pasivos_corrientes + otros_pasivos_nc
             activo_total_objetivo = total_activo_sin_tesoreria + tesoreria_minima
             
             # Necesidad de financiación
@@ -965,7 +987,8 @@ class ModeloFinanciero:
                 'proveedores': proveedores,
                 'deuda_cp': deuda_cp,
                 'deuda_lp': deuda_lp,
-                'otros_pasivos': otros_pasivos,
+                'otros_pasivos_corrientes': otros_pasivos_corrientes if 'otros_pasivos_corrientes' in locals() else otros_pasivos,
+                'otros_pasivos_nc': otros_pasivos_nc if 'otros_pasivos_nc' in locals() else 0,
                 # Patrimonio
                 'capital': self.capital_social,
                 'reservas': patrimonio_neto - self.capital_social,
@@ -1152,8 +1175,11 @@ class ModeloFinanciero:
             activo_corriente = (self.balance[self.balance['año'] == año]['clientes'].values[0] +
                             self.balance[self.balance['año'] == año]['inventario'].values[0] +
                             self.balance[self.balance['año'] == año]['tesoreria'].values[0])
-            pasivo_corriente = (self.balance[self.balance['año'] == año]['deuda_cp'].values[0] +
-                            self.balance[self.balance['año'] == año]['proveedores'].values[0])
+            pasivo_corriente = (
+                self.balance[self.balance['año'] == año]['deuda_cp'].values[0] +
+                self.balance[self.balance['año'] == año]['proveedores'].values[0] +
+                self.balance[self.balance['año'] == año].get('otros_pasivos_corrientes', pd.Series([0])).values[0]
+            )
             
             ratio_liquidez = activo_corriente / pasivo_corriente if pasivo_corriente > 0 else 999
             

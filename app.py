@@ -5919,8 +5919,8 @@ if generar_proyeccion or st.session_state.get("metodo_valoracion") in ["estandar
                 'Proveedores': balance['proveedores'].apply(lambda x: f"€{x:,.0f}".replace(",", ".")),
                 'Deuda CP': balance['deuda_cp'].apply(lambda x: f"€{x:,.0f}".replace(",", ".")),
                 'Deuda LP': balance['deuda_lp'].apply(lambda x: f"€{x:,.0f}".replace(",", ".")),
-                'Otros Pasivos': balance.get('otros_pasivos', 0).apply(lambda x: f"€{x:,.0f}".replace(",", ".")),
-                'Total Pasivo': (balance['proveedores'] + balance['deuda_cp'] + balance['deuda_lp'] + balance.get('otros_pasivos', 0)).apply(lambda x: f"€{x:,.0f}".replace(",", ".")),
+                'Otros Pasivos C': balance.get('otros_pasivos_corrientes', pd.Series([0])).apply(lambda x: f"€{x:,.0f}".replace(",", ".")),
+                'Total Pasivo': (balance['proveedores'] + balance['deuda_cp'] + balance['deuda_lp'] + balance.get('otros_pasivos_corrientes', pd.Series([0])) + balance.get('otros_pasivos_nc', pd.Series([0]))).apply(lambda x: f"€{x:,.0f}".replace(",", ".")),
                 'Patrimonio Neto': balance['patrimonio_neto'].apply(lambda x: f"€{x:,.0f}".replace(",", ".")),
                 'TOTAL P+PN': balance['total_pasivo_pn'].apply(lambda x: f"€{x:,.0f}".replace(",", ".")),
                 'Cuadre': (balance['total_activo'] - balance['total_pasivo_pn']).apply(lambda x: "✅" if abs(x) < 1 else f"❌ {x:,.0f}")
