@@ -91,6 +91,7 @@ class ModeloFinanciero:
         self.tipo_escenario = params_operativos.get("tipo_escenario", "Base")
         # Estructura de costos
         self.costos_variables_pct = params_operativos.get('costos_variables_pct', 0.6)
+        self.costos_variables_historico = params_operativos.get('costos_variables_historico', None)
         self.gastos_personal = params_operativos.get('gastos_personal', 0)
         self.gastos_generales = params_operativos.get('gastos_generales', 0)
         self.gastos_marketing = params_operativos.get('gastos_marketing', 0)
@@ -179,7 +180,11 @@ class ModeloFinanciero:
             return 0
         
         ventas = self.ventas_historicas[año_idx]
-        costos = ventas * self.costos_variables_pct
+        # Usar costos históricos específicos si están disponibles
+        if self.costos_variables_historico and año_idx < len(self.costos_variables_historico):
+            costos = ventas * (self.costos_variables_historico[año_idx] / 100)
+        else:
+            costos = ventas * self.costos_variables_pct
         
         # Usar gastos proyectados si están disponibles, sino históricos, sino crecimiento inteligente
         print(f"🔍 DEBUG Año {año_idx}: gastos_personal_proyectados existe? {self.gastos_personal_proyectados is not None}, len={len(self.gastos_personal_proyectados) if self.gastos_personal_proyectados else 0}, any>0? {any(x > 0 for x in self.gastos_personal_proyectados) if self.gastos_personal_proyectados else False}")
@@ -478,7 +483,15 @@ class ModeloFinanciero:
             print(f"DEBUG: Inflación acum: {inflacion_acum}, Factor actividad siguiente...")
 
             # Coste de ventas como % de ingresos (viene de datos_empresa)
-            coste_ventas = ingresos * self.costos_variables_pct
+            # Usar promedio de costos históricos si están disponibles
+            print(f"🔍 DEBUG costos: historico={self.costos_variables_historico}, pct_default={self.costos_variables_pct}")
+            if self.costos_variables_historico:
+                costos_pct_proy = sum(self.costos_variables_historico) / len(self.costos_variables_historico) / 100
+            else:
+                costos_pct_proy = self.costos_variables_pct
+            
+            coste_ventas = ingresos * costos_pct_proy
+            print(f"🔍 Año {año}: Ingresos={ingresos:,.0f}, Costos%={costos_pct_proy*100:.1f}%, Coste_Ventas={coste_ventas:,.0f}")
 
             # Gastos fijos ajustados por inflación
             # Gastos según estructura real del sector hostelería

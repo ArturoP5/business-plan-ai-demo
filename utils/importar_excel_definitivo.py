@@ -70,10 +70,10 @@ def importar_excel_definitivo(archivo):
         
         # Extraer valores por concepto
         ventas_valores = []
+        costos_variables_valores = []
         gastos_personal_valores = []
         gastos_generales_valores = []
         gastos_marketing_valores = []
-        costos_pct = 40  # valor por defecto
         
         for año in columnas_años[-3:]:  # Últimos 3 años
             fila_ventas = df[df['Concepto'] == 'Ventas']
@@ -83,15 +83,16 @@ def importar_excel_definitivo(archivo):
             fila_marketing = df[df['Concepto'] == 'Gastos de Marketing']
             
             ventas_valores.append(float(fila_ventas[año].values[0]) if not fila_ventas.empty else 0)
-            if not fila_costos_pct.empty and año == columnas_años[-1]:
-                costos_pct = float(fila_costos_pct[año].values[0])
+            valor_costo = float(fila_costos_pct[año].values[0]) if not fila_costos_pct.empty else 40.0
+            costos_variables_valores.append(valor_costo)
+            print(f"🔍 Excel - Año {año}: Costos = {valor_costo}%")
             gastos_personal_valores.append(float(fila_personal[año].values[0]) if not fila_personal.empty else 0)
             gastos_generales_valores.append(float(fila_generales[año].values[0]) if not fila_generales.empty else 0)
             gastos_marketing_valores.append(float(fila_marketing[año].values[0]) if not fila_marketing.empty else 0)
         
         datos['pyl_historico'] = {
             'ventas': ventas_valores,
-            'costos_variables_pct': costos_pct,
+            'costos_variables_pct': costos_variables_valores,  # Ahora es array
             'gastos_personal': gastos_personal_valores,
             'gastos_generales': gastos_generales_valores,
             'gastos_marketing': gastos_marketing_valores

@@ -326,7 +326,7 @@ def mostrar_resumen_ejecutivo_profesional(num_empleados_actual=None, año_fundac
         ventas_historicas = st.session_state.get('ventas_1', pyl['Ventas'].iloc[0])
         
         # Obtener todos los valores del sidebar usando las keys
-        costos_pct = st.session_state.get('costos_variables_slider', 40) / 100
+        costos_pct = st.session_state.get('costos_var_año3', 40) / 100
         gastos_personal = st.session_state.get('gastos_personal_key', 0)
         gastos_generales = st.session_state.get('gastos_generales_key', 0)
         gastos_marketing = st.session_state.get('gastos_marketing_key', 0)
@@ -948,6 +948,13 @@ with st.sidebar:
                         st.session_state["ventas_1"] = float(ventas_hist[2]) if len(ventas_hist) > 2 else 0
                         st.session_state["ventas_2"] = float(ventas_hist[1]) if len(ventas_hist) > 1 else 0
                         st.session_state["ventas_3"] = float(ventas_hist[0]) if len(ventas_hist) > 0 else 0
+                    # Actualizar costos variables con valores del Excel
+                    if "costos_variables_pct" in datos_excel["pyl_historico"]:
+                        costos_hist = datos_excel["pyl_historico"]["costos_variables_pct"]
+                        if isinstance(costos_hist, list) and len(costos_hist) >= 3:
+                            st.session_state["costos_var_año1"] = float(costos_hist[2])  # Año más reciente
+                            st.session_state["costos_var_año2"] = float(costos_hist[1])  # Año medio
+                            st.session_state["costos_var_año3"] = float(costos_hist[0])  # Año más antiguo
                     # Actualizar gastos históricos con años del Excel
                     if "pyl_historico" in datos_excel:
                         años_excel = [2023, 2024, 2025]
@@ -1354,7 +1361,14 @@ with st.sidebar:
         
         # Datos PYL
         default_ventas = datos_excel['pyl_historico']['ventas']
-        default_costos_var = int(datos_excel['pyl_historico'].get('costos_variables_pct', 40))
+        # Costos variables por año (ahora es array)
+        costos_var_excel = datos_excel['pyl_historico'].get('costos_variables_pct', [40, 40, 40])
+        if isinstance(costos_var_excel, list) and len(costos_var_excel) >= 3:
+            default_costos_var_1 = float(costos_var_excel[0])
+            default_costos_var_2 = float(costos_var_excel[1])
+            default_costos_var_3 = float(costos_var_excel[2])
+        else:
+            default_costos_var_1 = default_costos_var_2 = default_costos_var_3 = 40
         default_gastos_personal = datos_excel['pyl_historico']['gastos_personal']
         default_gastos_generales = datos_excel['pyl_historico']['gastos_generales']
         default_gastos_marketing = datos_excel['pyl_historico']['gastos_marketing']
@@ -1518,7 +1532,7 @@ with st.sidebar:
         
         # Valores PYL por defecto
         default_ventas = [13500000, 14200000, 15000000]
-        default_costos_var = 40
+        default_costos_var_1 = default_costos_var_2 = default_costos_var_3 = 40
         default_gastos_personal = [102000, 110000, 120000]
         default_gastos_generales = [30600, 33000, 36000]
         default_gastos_marketing = [10200, 11000, 12000]
@@ -1811,15 +1825,46 @@ with st.sidebar:
     # Estructura de costos
     st.subheader("Estructura de Costos")
 
-    costos_variables_pct = st.slider(
-        "Costos Variables (% de ventas)",
-        min_value=10,
-        max_value=98,
-        value=default_costos_var if 'default_costos_var' in locals() else 40,
-        step=1,
-        key="costos_variables_slider",
-        help="Incluye: materias primas, mercancías, comisiones de venta",
-    ) / 100
+    st.markdown("##### 📊 Costos Variables (% de ventas)")
+    st.caption("Incluye: materias primas, mercancías, comisiones de venta")
+    
+    col_cv1, col_cv2, col_cv3 = st.columns(3)
+    
+    with col_cv1:
+        costos_var_año3 = st.number_input(
+            f"Año {año_3}",
+            min_value=0.0,
+            max_value=100.0,
+            value=float(default_costos_var_3) if 'default_costos_var_3' in locals() else 40.0,
+            step=0.1,
+            format="%.1f",
+            key="costos_var_año3"
+        )
+    
+    with col_cv2:
+        costos_var_año2 = st.number_input(
+            f"Año {año_2}",
+            min_value=0.0,
+            max_value=100.0,
+            value=float(default_costos_var_2) if 'default_costos_var_2' in locals() else 40.0,
+            step=0.1,
+            format="%.1f",
+            key="costos_var_año2"
+        )
+    
+    with col_cv3:
+        costos_var_año1 = st.number_input(
+            f"Año {año_1}",
+            min_value=0.0,
+            max_value=100.0,
+            value=float(default_costos_var_1) if 'default_costos_var_1' in locals() else 40.0,
+            step=0.1,
+            format="%.1f",
+            key="costos_var_año1"
+        )
+    
+    # Array para usar en el modelo (orden cronológico: año3, año2, año1)
+    costos_variables_historico = [costos_var_año3, costos_var_año2, costos_var_año1]
 
     # Gastos de Personal - Múltiples años
     st.markdown("##### 💰 Gastos de Personal")
@@ -1906,7 +1951,7 @@ with st.sidebar:
     st.subheader("📊 EBITDA Calculado")
     
     # Calcular valores
-    coste_ventas = ventas_año_1 * costos_variables_pct
+    coste_ventas = ventas_año_1 * costos_variables_historico[-1] / 100
     total_gastos = gastos_personal + gastos_generales + gastos_marketing
     ebitda_calculado = ventas_año_1 - coste_ventas - total_gastos
     margen_ebitda_calc = (ebitda_calculado / ventas_año_1 * 100) if ventas_año_1 > 0 else 0
@@ -1917,7 +1962,7 @@ with st.sidebar:
         st.markdown(f"""
         **Desglose del cálculo:**
         - Ventas: **{simbolo_moneda}{ventas_año_1:,.0f}**
-        - Costos variables ({costos_variables_pct*100:.0f}%): **-{simbolo_moneda}{coste_ventas:,.0f}**
+        - Costos variables ({costos_variables_historico[-1]:.0f}%): **-{simbolo_moneda}{coste_ventas:,.0f}**
         - Gastos de personal: **-{simbolo_moneda}{gastos_personal:,.0f}**
         - Gastos generales: **-{simbolo_moneda}{gastos_generales:,.0f}**
         - Gastos de marketing: **-{simbolo_moneda}{gastos_marketing:,.0f}**
@@ -3764,7 +3809,8 @@ if generar_proyeccion or st.session_state.get("metodo_valoracion") in ["estandar
         'empresa_familiar': empresa_familiar == "Sí",
         'empresa_auditada': empresa_auditada,
         'ventas_historicas': [ventas_año_3, ventas_año_2, ventas_año_1],
-        'costos_variables_pct': costos_variables_pct,
+        'costos_variables_pct': costos_variables_historico[-1] / 100,  # Convertir % a decimal
+        'costos_variables_historico': costos_variables_historico,  # Array completo [año1, año2, año3]
         'gastos_personal': gastos_personal,
         'gastos_generales': gastos_generales,
         'gastos_marketing': gastos_marketing,
@@ -3893,7 +3939,7 @@ if generar_proyeccion or st.session_state.get("metodo_valoracion") in ["estandar
     margen_ebitda_esperado = margenes_por_sector.get(sector, 0.15)
 
     # Calcular EBITDA real basado en datos introducidos
-    coste_ventas_total = ventas_año_1 * costos_variables_pct
+    coste_ventas_total = ventas_año_1 * costos_variables_historico[-1] / 100
     gastos_totales = gastos_personal + gastos_generales + gastos_marketing
     ebitda_real = ventas_año_1 - coste_ventas_total - gastos_totales
     margen_ebitda_real = (ebitda_real / ventas_año_1 * 100) if ventas_año_1 > 0 else 0
@@ -4493,7 +4539,8 @@ if generar_proyeccion or st.session_state.get("metodo_valoracion") in ["estandar
         'tasa_impuestos': tipo_impositivo,
         'rating': 'BB', 
         'rating': 'BB',
-        'costos_variables_pct': costos_variables_pct,
+        'costos_variables_pct': costos_variables_historico[-1] / 100,  # Convertir % a decimal
+        'costos_variables_historico': costos_variables_historico,  # Array [año3, año2, año1]
         'gastos_personal': gastos_personal,
         'gastos_generales': gastos_generales,
         'gastos_marketing': gastos_marketing,
@@ -4751,7 +4798,7 @@ if generar_proyeccion or st.session_state.get("metodo_valoracion") in ["estandar
         multiplo_ebitda = valor_empresa_calc / ebitda_actual if ebitda_actual > 0 else 0
         # Obtener EBITDA histórico real
         ventas_hist = st.session_state.get('ventas_1', ventas_historicas)
-        costos_pct = st.session_state.get('costos_variables_slider', 40) / 100
+        costos_pct = st.session_state.get('costos_var_año3', 40) / 100
         gastos_personal = st.session_state.get('gastos_personal_key', 0)
         gastos_generales = st.session_state.get('gastos_generales_key', 0)
         gastos_marketing = st.session_state.get('gastos_marketing_key', 0)
