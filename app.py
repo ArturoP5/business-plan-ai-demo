@@ -3726,65 +3726,62 @@ with st.sidebar:
             # ESTRUCTURA DE CAPITAL PARA WACC
             # ════════════════════════════════════════════════
             st.markdown("---")
-            st.markdown("### 📊 Estructura de Capital")
+            st.markdown("### 📊 Estructura de Capital para WACC")
+            st.caption("Define cómo calcular el coste promedio ponderado del capital")
             
-            tipo_estructura = st.selectbox(
-                "Método para calcular WACC",
-                [
-                    "🎯 Objetivo del Sector (Recomendado)",
-                    "📊 Actual de la Empresa",
+            tipo_estructura = st.radio(
+                "Método de cálculo",
+                options=[
+                    "🎯 Objetivo del Sector",
+                    "📊 Actual de la Empresa", 
                     "✏️ Personalizada"
                 ],
                 index=0,
-                help="""
-                **Objetivo del Sector:** Usa estructura promedio del sector (ej: 35% deuda). 
-                Estándar McKinsey/Damodaran. Recomendado para M&A.
-                
-                **Actual de la Empresa:** Calcula del balance proyectado. 
-                Más conservador.
-                
-                **Personalizada:** Define tu propia estructura.
-                """
+                horizontal=True
             )
             
-            if tipo_estructura == "🎯 Objetivo del Sector (Recomendado)":
-                st.info("✅ Usando estructura objetivo del sector. Refleja cómo la empresa debería financiarse en el largo plazo.")
-                col1, col2 = st.columns(2)
-                with col1:
-                    pct_deuda_objetivo = st.number_input(
-                        "% Deuda (objetivo)",
-                        min_value=0.0,
-                        max_value=100.0,
-                        value=35.0,
-                        step=5.0,
-                        help="Estructura de capital objetivo del sector"
-                    )
-                with col2:
-                    pct_equity_objetivo = 100 - pct_deuda_objetivo
-                    st.metric("% Equity", f"{pct_equity_objetivo:.0f}%")
+            if tipo_estructura == "🎯 Objetivo del Sector":
+                with st.container():
+                    st.info("✅ **Recomendado para valoraciones M&A**\n\nUsa estructura promedio del sector según estándares McKinsey/Damodaran. Refleja cómo la empresa debería financiarse en el largo plazo.")
+                    col1, col2 = st.columns([1, 1])
+                    with col1:
+                        pct_deuda_objetivo = st.slider(
+                            "% Deuda objetivo",
+                            min_value=0,
+                            max_value=70,
+                            value=35,
+                            step=5,
+                            help="Estructura de capital objetivo del sector"
+                        )
+                    with col2:
+                        pct_equity_objetivo = 100 - pct_deuda_objetivo
+                        st.metric("% Equity objetivo", f"{pct_equity_objetivo}%", help="Complemento automático")
                 
                 usar_estructura_objetivo = True
                 
             elif tipo_estructura == "📊 Actual de la Empresa":
-                st.info("📊 Se calculará automáticamente del balance proyectado (Año 5).")
-                st.caption("La estructura se extraerá de: Deuda Total / (Deuda + Patrimonio Neto)")
+                with st.container():
+                    st.info("📊 **Estructura conservadora**\n\nCalcula automáticamente del balance proyectado (Año 5).\n\n`Deuda Total / (Deuda + Patrimonio Neto)`")
+                    st.caption("⚠️ Puede subvalorar empresas infraendeudadas que podrían optimizar su estructura.")
+                
                 usar_estructura_objetivo = False
                 pct_deuda_objetivo = None
                 
             else:  # Personalizada
-                st.info("✏️ Define tu estructura de capital personalizada.")
-                col1, col2 = st.columns(2)
-                with col1:
-                    pct_deuda_objetivo = st.number_input(
-                        "% Deuda",
-                        min_value=0.0,
-                        max_value=100.0,
-                        value=40.0,
-                        step=5.0
-                    )
-                with col2:
-                    pct_equity_objetivo = 100 - pct_deuda_objetivo
-                    st.metric("% Equity", f"{pct_equity_objetivo:.0f}%")
+                with st.container():
+                    st.info("✏️ **Define tu propia estructura**\n\nÚtil para análisis de sensibilidad o escenarios específicos.")
+                    col1, col2 = st.columns([1, 1])
+                    with col1:
+                        pct_deuda_objetivo = st.slider(
+                            "% Deuda personalizada",
+                            min_value=0,
+                            max_value=80,
+                            value=40,
+                            step=5
+                        )
+                    with col2:
+                        pct_equity_objetivo = 100 - pct_deuda_objetivo
+                        st.metric("% Equity", f"{pct_equity_objetivo}%")
                 
                 usar_estructura_objetivo = True
             
