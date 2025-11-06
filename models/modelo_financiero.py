@@ -821,7 +821,7 @@ class ModeloFinanciero:
             # FASE 9: OTROS PASIVOS
             # ═══════════════════════════════════════════════════
             
-            impuestos_pagar = max(0, beneficio_neto * 0.25 * 0.5)
+            impuestos_pagar = max(0, beneficio_neto * self.tasa_impuestos / 100 * 0.5)
             seg_social = gastos_personal * 0.3 / 12
             
             if ingresos < 2_000_000:
@@ -1238,7 +1238,7 @@ class ModeloFinanciero:
             # Ratios de solvencia
             ratio_endeudamiento = deuda_total / patrimonio_neto if patrimonio_neto > 0 else 0
             ratio_cobertura_intereses = ebitda / self.pyl[self.pyl['año'] == año]['gastos_financieros'].values[0] if self.pyl[self.pyl['año'] == año]['gastos_financieros'].values[0] > 0 else 999
-            deuda_neta_ebitda = (deuda_total - self.balance[self.balance['año'] == año]['tesoreria'].values[0]) / ebitda if ebitda > 0 else 999
+            deuda_neta_ebitda = max(0, deuda_total - self.balance[self.balance['año'] == año]['tesoreria'].values[0]) / ebitda if ebitda > 0 else 0
             
             # Ratios de liquidez
             activo_corriente = (self.balance[self.balance['año'] == año]['clientes'].values[0] +

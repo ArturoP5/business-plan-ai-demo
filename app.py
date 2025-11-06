@@ -5355,6 +5355,13 @@ if generar_proyeccion or st.session_state.get("metodo_valoracion") in ["estandar
                 with col_wacc1:
                     st.metric("WACC Total", f"{wacc:.2f}%")
                     st.write("**Fórmula:**")
+                    # Nota dinámica según selección
+                    if tipo_estructura == "Objetivo del Sector (Recomendado)":
+                        st.info("💡 **Nota metodológica:** El WACC utiliza la estructura de capital objetivo del sector. Esta es la práctica estándar según McKinsey y Damodaran para valoraciones DCF, ya que refleja cómo la empresa debería financiarse en el largo plazo independientemente de su estructura actual.")
+                    elif tipo_estructura == "Actual de la Empresa":
+                        st.info("💡 **Nota metodológica:** El WACC utiliza la estructura de capital actual del balance. Esto es más conservador pero puede no reflejar el potencial de optimización de la estructura de capital.")
+                    else:
+                        st.info("💡 **Nota metodológica:** El WACC utiliza la estructura de capital personalizada que has definido.")
                     st.write("WACC = Kd × (1-T) × D/(D+E) + Ke × E/(D+E)")
                     st.write("")
                     for componente, valor in wacc_componentes.items():
@@ -5920,6 +5927,7 @@ if generar_proyeccion or st.session_state.get("metodo_valoracion") in ["estandar
                 'Deuda CP': balance['deuda_cp'].apply(lambda x: f"€{x:,.0f}".replace(",", ".")),
                 'Deuda LP': balance['deuda_lp'].apply(lambda x: f"€{x:,.0f}".replace(",", ".")),
                 'Otros Pasivos C': balance.get('otros_pasivos_corrientes', pd.Series([0])).apply(lambda x: f"€{x:,.0f}".replace(",", ".")),
+                'Otros Pasivos NC': balance.get('otros_pasivos_nc', pd.Series([0])).apply(lambda x: f"€{x:,.0f}".replace(",", ".")),
                 'Total Pasivo': (balance['proveedores'] + balance['deuda_cp'] + balance['deuda_lp'] + balance.get('otros_pasivos_corrientes', pd.Series([0])) + balance.get('otros_pasivos_nc', pd.Series([0]))).apply(lambda x: f"€{x:,.0f}".replace(",", ".")),
                 'Patrimonio Neto': balance['patrimonio_neto'].apply(lambda x: f"€{x:,.0f}".replace(",", ".")),
                 'TOTAL P+PN': balance['total_pasivo_pn'].apply(lambda x: f"€{x:,.0f}".replace(",", ".")),
