@@ -232,13 +232,31 @@ class ValoracionBancaInversion:
         kd_bruto = rf + self._obtener_spread_crediticio(modelo)
         kd = kd_bruto * (1 - modelo.tasa_impuestos / 100)
         
-        # 3. Estructura de capital objetivo
-        deuda_total = modelo.calcular_deuda_total()
-        equity_valor = datos['ventas_actuales'] * 0.8  # Aproximación inicial
-        valor_total = deuda_total + equity_valor
+        # 3. Estructura de capital
+        # Verificar si hay parámetros de estructura en params_avanzados
+        usar_objetivo = getattr(modelo, 'usar_estructura_objetivo', None)
+
+        # DEBUG
+        print(f"\n🔍 DEBUG WACC - Estructura Capital:")
+        print(f"  usar_objetivo desde modelo: {usar_objetivo}")
+        print(f"  pct_deuda_objetivo desde modelo: {pct_deuda_objetivo}")
+
+        pct_deuda_objetivo = getattr(modelo, 'pct_deuda_objetivo', None)
         
-        wd = deuda_total / valor_total if valor_total > 0 else 0.3
-        we = 1 - wd
+        if usar_objetivo is not False and pct_deuda_objetivo is not None:
+            # Usar estructura objetivo definida por usuario
+            wd = pct_deuda_objetivo
+            we = 1 - wd
+            print(f"  → Usando estructura OBJETIVO: {wd*100:.0f}% deuda / {we*100:.0f}% equity")
+        else:
+            # Calcular estructura ACTUAL del balance
+            deuda_total = modelo.calcular_deuda_total()
+            equity_valor = datos['ventas_actuales'] * 0.8  # Aproximación inicial
+            valor_total = deuda_total + equity_valor
+            
+            wd = deuda_total / valor_total if valor_total > 0 else 0.3
+            we = 1 - wd
+            print(f"  → Usando estructura ACTUAL: {wd*100:.0f}% deuda / {we*100:.0f}% equity")
         
         # 4. WACC
         wacc = we * ke + wd * kd

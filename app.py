@@ -3722,6 +3722,74 @@ with st.sidebar:
         
         col1, col2 = st.columns(2)
         with col1:
+            # ════════════════════════════════════════════════
+            # ESTRUCTURA DE CAPITAL PARA WACC
+            # ════════════════════════════════════════════════
+            st.markdown("---")
+            st.markdown("### 📊 Estructura de Capital")
+            
+            tipo_estructura = st.selectbox(
+                "Método para calcular WACC",
+                [
+                    "🎯 Objetivo del Sector (Recomendado)",
+                    "📊 Actual de la Empresa",
+                    "✏️ Personalizada"
+                ],
+                index=0,
+                help="""
+                **Objetivo del Sector:** Usa estructura promedio del sector (ej: 35% deuda). 
+                Estándar McKinsey/Damodaran. Recomendado para M&A.
+                
+                **Actual de la Empresa:** Calcula del balance proyectado. 
+                Más conservador.
+                
+                **Personalizada:** Define tu propia estructura.
+                """
+            )
+            
+            if tipo_estructura == "🎯 Objetivo del Sector (Recomendado)":
+                st.info("✅ Usando estructura objetivo del sector. Refleja cómo la empresa debería financiarse en el largo plazo.")
+                col1, col2 = st.columns(2)
+                with col1:
+                    pct_deuda_objetivo = st.number_input(
+                        "% Deuda (objetivo)",
+                        min_value=0.0,
+                        max_value=100.0,
+                        value=35.0,
+                        step=5.0,
+                        help="Estructura de capital objetivo del sector"
+                    )
+                with col2:
+                    pct_equity_objetivo = 100 - pct_deuda_objetivo
+                    st.metric("% Equity", f"{pct_equity_objetivo:.0f}%")
+                
+                usar_estructura_objetivo = True
+                
+            elif tipo_estructura == "📊 Actual de la Empresa":
+                st.info("📊 Se calculará automáticamente del balance proyectado (Año 5).")
+                st.caption("La estructura se extraerá de: Deuda Total / (Deuda + Patrimonio Neto)")
+                usar_estructura_objetivo = False
+                pct_deuda_objetivo = None
+                
+            else:  # Personalizada
+                st.info("✏️ Define tu estructura de capital personalizada.")
+                col1, col2 = st.columns(2)
+                with col1:
+                    pct_deuda_objetivo = st.number_input(
+                        "% Deuda",
+                        min_value=0.0,
+                        max_value=100.0,
+                        value=40.0,
+                        step=5.0
+                    )
+                with col2:
+                    pct_equity_objetivo = 100 - pct_deuda_objetivo
+                    st.metric("% Equity", f"{pct_equity_objetivo:.0f}%")
+                
+                usar_estructura_objetivo = True
+            
+            st.markdown("---")
+            
             payout_ratio = st.slider(
                 "Política de Dividendos (%)",
                 min_value=0,
@@ -3763,6 +3831,9 @@ with st.sidebar:
         st.session_state.params_avanzados = {
             'payout_ratio': payout_ratio / 100,
             'limite_deuda_ebitda': limite_deuda_ebitda,
+            'usar_estructura_objetivo': usar_estructura_objetivo,
+            'pct_deuda_objetivo': pct_deuda_objetivo / 100 if pct_deuda_objetivo is not None else None,
+            'tipo_estructura': tipo_estructura,
             'wacc_objetivo': wacc_objetivo / 100,
             'tasa_impositiva': tasa_impositiva / 100
         }
@@ -4627,6 +4698,20 @@ if generar_proyeccion or st.session_state.get("metodo_valoracion") in ["estandar
     # Crear modelo y generar proyecciones
     with st.spinner('Generando proyecciones financieras...'):
         modelo = ModeloFinanciero(empresa_info, escenario_macro, params_operativos)
+
+        # Añadir parámetros de estructura de capital
+        if 'params_avanzados' in st.session_state:
+            modelo.usar_estructura_objetivo = st.session_state.params_avanzados.get('usar_estructura_objetivo', True)
+            modelo.pct_deuda_objetivo = st.session_state.params_avanzados.get('pct_deuda_objetivo')
+            modelo.tipo_estructura = st.session_state.params_avanzados.get('tipo_estructura', 'Objetivo del Sector')
+
+            # DEBUG: Verificar parámetros asignados
+            print(f"\n🔍 DEBUG ESTRUCTURA CAPITAL:")
+            print(f"  usar_estructura_objetivo: {modelo.usar_estructura_objetivo}")
+            print(f"  pct_deuda_objetivo: {modelo.pct_deuda_objetivo}")
+            print(f"  tipo_estructura: {modelo.tipo_estructura}")
+
+
         print(f"🔍 DEBUG: Modelo creado. Gastos proyectados en modelo: {modelo.gastos_personal_proyectados}")
         
     
@@ -4769,7 +4854,9 @@ if generar_proyeccion or st.session_state.get("metodo_valoracion") in ["estandar
             }
         else:
             # Usar valoración estándar
-            valoracion_prof = modelo.realizar_valoracion_mckinsey() if hasattr(modelo, 'realizar_valoracion_mckinsey') else {}
+            # Usar valoración profesional de banca inversión (con estructura capital configurable)
+            from utils.valoracion_bancainversion import realizar_valoracion_profesional
+            valoracion_prof = realizar_valoracion_profesional(modelo)
 
         # Generar resumen ejecutivo
         resumen = f"""

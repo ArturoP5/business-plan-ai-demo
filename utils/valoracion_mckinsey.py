@@ -104,8 +104,29 @@ class ValoracionMcKinsey:
             "Servicios": 0.30
         }
         
-        target_d_v = target_debt_ratios.get(self.sector, 0.30)
-        target_e_v = 1 - target_d_v
+        # Verificar si el modelo tiene parámetros de estructura definidos por el usuario
+        usar_objetivo = getattr(self.modelo, 'usar_estructura_objetivo', None)
+        pct_deuda_obj = getattr(self.modelo, 'pct_deuda_objetivo', None)
+        
+        if usar_objetivo is not False and pct_deuda_obj is not None:
+            # Usar estructura objetivo del usuario
+            target_d_v = pct_deuda_obj
+            target_e_v = 1 - target_d_v
+            print(f"  ✓ WACC usa estructura OBJETIVO del usuario: {target_d_v*100:.0f}% deuda / {target_e_v*100:.0f}% equity")
+        else:
+            # Calcular estructura ACTUAL del balance
+            if hasattr(self.modelo, 'balance') and self.modelo.balance is not None:
+                deuda_total = self.modelo.calcular_deuda_total()
+                patrimonio = self.modelo.balance['patrimonio_neto'].iloc[-1]
+                total = deuda_total + patrimonio
+                target_d_v = deuda_total / total if total > 0 else 0.0
+                target_e_v = 1 - target_d_v
+                print(f"  ✓ WACC usa estructura ACTUAL: {target_d_v*100:.0f}% deuda / {target_e_v*100:.0f}% equity")
+            else:
+                # Fallback: estructura del sector
+                target_d_v = target_debt_ratios.get(self.sector, 0.30)
+                target_e_v = 1 - target_d_v
+                print(f"  ⚠ WACC usa estructura SECTOR (fallback): {target_d_v*100:.0f}% deuda")
         
         # WACC
         wacc = target_e_v * cost_of_equity + target_d_v * cost_of_debt_after_tax
