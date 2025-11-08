@@ -666,17 +666,21 @@ def mostrar_resumen_ejecutivo_profesional(num_empleados_actual=None, año_fundac
         # Calcular días de cobro dinámicamente
         clientes = balance.get("clientes", pd.Series([0])).iloc[-1]
         ventas_anuales = pyl["Ventas"].iloc[-1] if "Ventas" in pyl else 1
-        dias_cobro = st.session_state.get("dias_cobro", 60)
-        st.metric("Días de Cobro", f"{dias_cobro}", help="Días promedio para cobrar a clientes")    
+        clientes_año5 = balance.get("clientes", pd.Series([0])).iloc[-1]
+        ventas_año5 = pyl["Ventas"].iloc[-1] if "Ventas" in pyl else 1
+        dias_cobro_calc = int((clientes_año5 / ventas_año5) * 365) if ventas_año5 > 0 else 0
+        st.metric("Días de Cobro", f"{dias_cobro_calc}", help="Calculado del balance proyectado")    
     with col_ef2:
         # Calcular días de pago dinámicamente
         proveedores = balance.get("proveedores", pd.Series([0])).iloc[-1]
         compras_anuales = pyl["Coste Ventas"].iloc[-1] if "Coste Ventas" in pyl else ventas_anuales * 0.7
-        dias_pago = st.session_state.get("dias_pago", 30)
-        st.metric("Días de Pago", f"{dias_pago}", help="Días promedio para pagar a proveedores")
+        proveedores_año5 = balance.get("proveedores", pd.Series([0])).iloc[-1]
+        compras_año5 = pyl["Coste Ventas"].iloc[-1] if "Coste Ventas" in pyl else ventas_año5 * 0.7
+        dias_pago_calc = int((proveedores_año5 / compras_año5) * 365) if compras_año5 > 0 else 0
+        st.metric("Días de Pago", f"{dias_pago_calc}", help="Calculado del balance proyectado")
     
     with col_ef3:
-        ciclo_caja = dias_cobro + dias_stock - dias_pago
+        ciclo_caja = dias_cobro_calc + dias_stock - dias_pago_calc
         st.metric("Ciclo de Caja", f"{ciclo_caja} días", help="Días cobro + Días stock - Días pago")
     
     with col_ef4:
@@ -998,6 +1002,17 @@ with st.sidebar:
                         st.session_state['slider_crecimiento_año3'] = float(crecimientos[2])
                         st.session_state['slider_crecimiento_año4'] = float(crecimientos[3])
                         st.session_state['slider_crecimiento_año5'] = float(crecimientos[4])
+
+                    # Cargar ciclo conversión dinámico
+                    if "dias_cobro_proy" in datos_excel["proyecciones"]:
+                        st.session_state["dias_cobro_proy"] = datos_excel["proyecciones"]["dias_cobro_proy"]
+                        print(f"✅ Cargado a session_state: dias_cobro_proy = {st.session_state['dias_cobro_proy']}")
+                    if "dias_pago_proy" in datos_excel["proyecciones"]:
+                        st.session_state["dias_pago_proy"] = datos_excel["proyecciones"]["dias_pago_proy"]
+                    if "dias_inventario_proy" in datos_excel["proyecciones"]:
+                        st.session_state["dias_inventario_proy"] = datos_excel["proyecciones"]["dias_inventario_proy"]
+                    
+                    # Cargar arrays de ciclo conversión
             except Exception as e:
                 st.error(f"❌ Error al leer el archivo: {str(e)}")
                 datos_excel = None
@@ -4594,6 +4609,9 @@ if generar_proyeccion or st.session_state.get("metodo_valoracion") in ["estandar
         'dias_cobro': dias_cobro,
         'dias_pago': dias_pago,
         'dias_inventario': dias_stock,
+        'dias_cobro_proy': st.session_state.get('dias_cobro_proy', [dias_cobro] * 5),
+        'dias_pago_proy': st.session_state.get('dias_pago_proy', [dias_pago] * 5),
+        'dias_inventario_proy': st.session_state.get('dias_inventario_proy', [dias_stock] * 5),
         'activo_fijo': activo_fijo_neto,
         'activo_fijo_bruto': activo_fijo_bruto,
         'depreciacion_acumulada': depreciacion_acumulada,
@@ -4694,6 +4712,10 @@ if generar_proyeccion or st.session_state.get("metodo_valoracion") in ["estandar
     
     # Crear modelo y generar proyecciones
     with st.spinner('Generando proyecciones financieras...'):
+        print(f"\n🔍 ANTES de crear modelo:")
+        print(f"  dias_cobro_proy en params: {params_operativos.get('dias_cobro_proy')}")
+        print(f"  dias_pago_proy en params: {params_operativos.get('dias_pago_proy')}")
+        
         modelo = ModeloFinanciero(empresa_info, escenario_macro, params_operativos)
 
         # Añadir parámetros de estructura de capital

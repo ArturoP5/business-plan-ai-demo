@@ -87,6 +87,16 @@ class ModeloFinanciero:
         self.dias_cobro = params_operativos.get('dias_cobro', 60)
         self.dias_pago = params_operativos.get('dias_pago', 45)
         self.dias_inventario = params_operativos.get('dias_inventario', 30)
+        
+        # Ciclo conversión dinámico (arrays por año)
+        self.dias_cobro_proy = params_operativos.get('dias_cobro_proy', [self.dias_cobro] * 5)
+        self.dias_pago_proy = params_operativos.get('dias_pago_proy', [self.dias_pago] * 5)
+        self.dias_inventario_proy = params_operativos.get('dias_inventario_proy', [self.dias_inventario] * 5)
+        
+        print(f"\n🔍 MODELO recibió arrays:")
+        print(f"  self.dias_cobro_proy: {self.dias_cobro_proy}")
+        print(f"  self.dias_pago_proy: {self.dias_pago_proy}")
+        
 
         self.tipo_escenario = params_operativos.get("tipo_escenario", "Base")
         # Estructura de costos
@@ -742,11 +752,10 @@ class ModeloFinanciero:
             # FASE 2: WORKING CAPITAL
             # ═══════════════════════════════════════════════════
             
-            # TODO: Implementar días dinámicos cuando se añadan inputs
-            # dias_cobro_año = self.dias_cobro_proy[año-1] if hasattr(self, 'dias_cobro_proy') else self.dias_cobro
-            dias_cobro_año = self.dias_cobro
-            dias_pago_año = self.dias_pago
-            dias_inv_año = self.dias_inventario
+            # Usar días dinámicos por año
+            dias_cobro_año = self.dias_cobro_proy[año-1] if hasattr(self, 'dias_cobro_proy') and len(self.dias_cobro_proy) >= año else self.dias_cobro
+            dias_pago_año = self.dias_pago_proy[año-1] if hasattr(self, 'dias_pago_proy') and len(self.dias_pago_proy) >= año else self.dias_pago
+            dias_inv_año = self.dias_inventario_proy[año-1] if hasattr(self, 'dias_inventario_proy') and len(self.dias_inventario_proy) >= año else self.dias_inventario
             
             clientes = ingresos * dias_cobro_año / 365
             

@@ -189,6 +189,69 @@ def importar_excel_definitivo(archivo):
         # 8. PARÁMETROS
         df = pd.read_excel(archivo, sheet_name='Proyecciones_Parametros')
         param_dict = dict(zip(df['Parámetro'].fillna(''), df['Valor'].fillna(0)))
+        
+        # Leer ciclo conversión dinámico (formato tabla)
+        # Buscar fila "Días Cobro" y leer columnas Año 1-5
+        
+        # Inicializar con valores por defecto
+        dias_cobro_base = int(param_dict.get('Días de cobro (DSO)', 60))
+        dias_pago_base = int(param_dict.get('Días de pago (DPO)', 45))
+        dias_inv_base = int(param_dict.get('Días de inventario', 60))
+        
+        dias_cobro_proy = [dias_cobro_base] * 5
+        dias_pago_proy = [dias_pago_base] * 5
+        dias_inv_proy = [dias_inv_base] * 5
+        
+        try:
+            df_full = pd.read_excel(archivo, sheet_name='Proyecciones_Parametros', header=None)
+            dias_cobro_row = None
+            dias_pago_row = None
+            dias_inv_row = None
+            
+            for idx, row in df_full.iterrows():
+                if row[0] == 'Días Cobro':
+                    dias_cobro_row = idx
+                elif row[0] == 'Días Pago':
+                    dias_pago_row = idx
+                elif row[0] == 'Días Inventario':
+                    dias_inv_row = idx
+            
+            # Resetear arrays para llenarlos
+            dias_cobro_proy = []
+            dias_pago_proy = []
+            dias_inv_proy = []
+            
+            print(f"  Índices encontrados: Cobro={dias_cobro_row}, Pago={dias_pago_row}, Inv={dias_inv_row}")
+            
+            for col in range(1, 6):  # Columnas 1-5
+                if dias_cobro_row is not None:
+                    val = df_full.iloc[dias_cobro_row, col]
+                    dias_cobro_proy.append(int(val) if pd.notna(val) and val != '' else dias_cobro_base)
+                else:
+                    dias_cobro_proy.append(dias_cobro_base)
+                    
+                if dias_pago_row is not None:
+                    val = df_full.iloc[dias_pago_row, col]
+                    dias_pago_proy.append(int(val) if pd.notna(val) and val != '' else dias_pago_base)
+                else:
+                    dias_pago_proy.append(dias_pago_base)
+                    
+                if dias_inv_row is not None:
+                    val = df_full.iloc[dias_inv_row, col]
+                    dias_inv_proy.append(int(val) if pd.notna(val) and val != '' else dias_inv_base)
+                else:
+                    dias_inv_proy.append(dias_inv_base)
+                    
+            print(f"  Arrays leídos:")
+            print(f"    Días cobro: {dias_cobro_proy}")
+            print(f"    Días pago: {dias_pago_proy}")
+            print(f"    Días inventario: {dias_inv_proy}")
+            
+        except Exception as e:
+            print(f"⚠️ No se pudo leer ciclo dinámico: {e}")
+            dias_cobro_proy = [dias_cobro_base] * 5
+            dias_pago_proy = [dias_pago_base] * 5
+            dias_inv_proy = [dias_inv_base] * 5
         print("🔍 DEBUG importador - Parámetros leídos del Excel:")
         print(f"🔍 DEBUG importador: Ventas históricas = {datos.get("pyl_historico", {}).get("ventas", "NO ENCONTRADO")}")
         for key, value in list(param_dict.items())[:10]:
@@ -204,6 +267,12 @@ def importar_excel_definitivo(archivo):
             'dias_cobro': int(param_dict.get('Días de cobro (DSO)', 60)),
             'dias_pago': int(param_dict.get('Días de pago (DPO)', 45)),
             'dias_inventario': int(param_dict.get('Días de inventario', 60)),
+            
+            # Arrays dinámicos (si existen)
+            'dias_cobro_proy': dias_cobro_proy,
+            'dias_pago_proy': dias_pago_proy,
+            'dias_inventario_proy': dias_inv_proy,
+
             'crecimiento_ventas': [
                 float(param_dict.get('Crecimiento Año 1 (%)', 10)),
                 float(param_dict.get('Crecimiento Año 2 (%)', 8)),

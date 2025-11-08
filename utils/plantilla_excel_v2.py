@@ -196,6 +196,11 @@ def crear_plantilla_v2():
     ws.append(["Días de cobro (DSO)", 60, "Media del sector"])
     ws.append(["Días de pago (DPO)", 45, "Media del sector"])
     ws.append(["Días de inventario", 30, "Según tipo negocio"])
+    ws.append(["", "", ""])
+    ws.append(["PROYECCIÓN CICLO CONVERSIÓN", "Año 1", "Año 2", "Año 3", "Año 4", "Año 5"])
+    ws.append(["Días Cobro", "", "", "", "", ""])
+    ws.append(["Días Pago", "", "", "", "", ""])
+    ws.append(["Días Inventario", "", "", "", "", ""])
     ws.append(["Crecimiento Año 1 (%)", 10, "Sobre año actual"])
     ws.append(["Crecimiento Año 2 (%)", 8, "Sobre año 1"])
     ws.append(["Crecimiento Año 3 (%)", 6, "Sobre año 2"])
@@ -221,6 +226,7 @@ def crear_plantilla_v2():
     ws.append(["Gastos Marketing Año 3", 0, "Gastos de marketing proyectados"])
     ws.append(["Gastos Marketing Año 4", 0, "Gastos de marketing proyectados"])
     ws.append(["Gastos Marketing Año 5", 0, "Gastos de marketing proyectados"])
+    
     # 10. BALANCE_CHECK (la parte más importante)
     crear_balance_check_completo(wb, año_actual)
     
