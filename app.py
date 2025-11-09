@@ -893,7 +893,7 @@ with st.sidebar:
         st.download_button(
             label="📥 Descargar Plantilla Excel v2.0",
             data=plantilla_mejorada,
-            file_name=f"plantilla_business_plan_v2_{datetime.now().strftime("%Y%m%d")}.xlsx",
+            file_name=f"plantilla_business_plan_v2_{datetime.now().strftime('%Y%m%d')}.xlsx",
             mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
             help="Nueva plantilla con líneas de financiación y descripción del negocio"
         )
