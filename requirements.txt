@@ -12,3 +12,4 @@ requests==2.31.0
 xlsxwriter==3.1.9
 reportlab==4.0.9
 python-pptx==0.6.23
+# Force rebuild
