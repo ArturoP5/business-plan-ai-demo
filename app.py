@@ -193,7 +193,7 @@ def mostrar_resumen_ejecutivo_profesional(num_empleados_actual=None, año_fundac
         st.metric(
             "Valoración Empresa",
             f"{get_simbolo_moneda()}{valor_empresa:,.0f}",
-            delta=f"Múltiplo {valor_empresa / (pyl["EBITDA"].iloc[-1] if "EBITDA" in pyl and pyl["EBITDA"].iloc[-1] > 0 else 1):.1f}x",
+            delta=f"Múltiplo {valor_empresa / (pyl['EBITDA'].iloc[-1] if 'EBITDA' in pyl and pyl['EBITDA'].iloc[-1] > 0 else 1):.1f}x",
             help="Valor estimado de la empresa usando metodología DCF McKinsey"
         )
     
