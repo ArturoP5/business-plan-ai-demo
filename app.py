@@ -213,7 +213,7 @@ def mostrar_resumen_ejecutivo_profesional(num_empleados_actual=None, año_fundac
         
         # Texto explicativo contextual para TIR
         if tir_real < umbrales["bueno"]:
-            st.caption(f"💡 TIR {tir_real:.1f}% está por debajo del promedio del sector {sector} ({umbrales["bueno"]}%)")
+            st.caption(f"💡 TIR {tir_real:.1f}% está por debajo del promedio del sector {sector} ({umbrales['bueno']}%)")
         elif tir_real < umbrales["excelente"]:
             st.caption(f"✅ TIR {tir_real:.1f}% dentro del rango esperado para {sector}")
         else:
@@ -5014,28 +5014,28 @@ if generar_proyeccion or st.session_state.get("metodo_valoracion") in ["estandar
         with col1:
             st.metric(
             label="Ventas Año 5",
-            value=f"{get_simbolo_moneda()}{st.session_state.datos_guardados["pyl"]['Ventas'].iloc[-1]:,.0f}",
-            delta=f"{st.session_state.datos_guardados["metricas"]['crecimiento_ventas_promedio']:.1f}% crecimiento anual"
+            value=f"{get_simbolo_moneda()}{st.session_state.datos_guardados['pyl']['Ventas'].iloc[-1]:,.0f}",
+            delta=f"{st.session_state.datos_guardados['metricas']['crecimiento_ventas_promedio']:.1f}% crecimiento anual"
         )
 
         with col2:
             st.metric(
             label="EBITDA Año 5",
-            value=f"{get_simbolo_moneda()}{st.session_state.datos_guardados["pyl"]['EBITDA'].iloc[-1]:,.0f}",
-            delta=f"{st.session_state.datos_guardados["pyl"]['EBITDA %'].iloc[-1]}% margen"
+            value=f"{get_simbolo_moneda()}{st.session_state.datos_guardados['pyl']['EBITDA'].iloc[-1]:,.0f}",
+            delta=f"{st.session_state.datos_guardados['pyl']['EBITDA %'].iloc[-1]}% margen"
         )
 
         with col3:
             st.metric(
             label="Beneficio Año 5",
-            value=f"{get_simbolo_moneda()}{st.session_state.datos_guardados["pyl"]['Beneficio Neto'].iloc[-1]:,.0f}",
-            delta=f"{st.session_state.datos_guardados["pyl"]['Beneficio Neto %'].iloc[-1]}% margen"
+            value=f"{get_simbolo_moneda()}{st.session_state.datos_guardados['pyl']['Beneficio Neto'].iloc[-1]:,.0f}",
+            delta=f"{st.session_state.datos_guardados['pyl']['Beneficio Neto %'].iloc[-1]}% margen"
         )
 
         with col4:
             st.metric(
             label="ROI Proyectado",
-            value=f"{st.session_state.datos_guardados["metricas"]['roi_proyectado']}%"
+            value=f"{st.session_state.datos_guardados['metricas']['roi_proyectado']}%"
         )
 
         # Documentación de Metodología
