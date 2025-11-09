@@ -4654,15 +4654,27 @@ if generar_proyeccion or st.session_state.get("metodo_valoracion") in ["estandar
             gastos_marketing_año4,
             gastos_marketing_año5
         ],
-        'prestamos_lp': [
-            {
-                'principal': prestamo_principal,
-                'tipo_interes': prestamo_interes,
-                'plazo_años': prestamo_plazo,
-                'año_inicio': 1,
-                'metodo_amortizacion': sistema_amortizacion
-            }
-        ] if prestamo_principal > 0 else [],
+        'prestamos_lp': (
+            [
+                {
+                    'principal': prestamo_principal,
+                    'tipo_interes': prestamo_interes,
+                    'plazo_años': prestamo_plazo,
+                    'año_inicio': 1,
+                    'metodo_amortizacion': sistema_amortizacion
+                }
+            ] if prestamo_principal > 0 else []
+        ) + (
+            [
+                {
+                    'principal': otros_prestamos_lp,
+                    'tipo_interes': prestamo_interes,  # Usar mismo tipo que préstamo principal
+                    'plazo_años': 5,  # Por defecto 5 años
+                    'año_inicio': 1,
+                    'metodo_amortizacion': 'frances'
+                }
+            ] if otros_prestamos_lp > 0 else []
+        ),
         'hipotecas': [
             {
                 'principal': hipoteca_principal,
