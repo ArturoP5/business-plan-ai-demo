@@ -5294,13 +5294,13 @@ if generar_proyeccion or st.session_state.get("metodo_valoracion") in ["estandar
                 equity_value = ev_value - deuda_neta
                 
                 with col1_eb:
-                    st.metric("Enterprise Value", f"€{ev_value/1000000:.1f}M", help="Valor total del negocio")
+                    st.metric("Enterprise Value", f"€{ev_value/1000000:.2f}M", help="Valor total del negocio")
                 
                 with col2_eb:
-                    st.metric("(-) Deuda Neta", f"€{deuda_neta/1000000:.1f}M", help="Deuda financiera - Tesorería")
+                    st.metric("(-) Deuda Neta", f"€{deuda_neta/1000000:.2f}M", help="Deuda financiera - Tesorería")
                 
                 with col3_eb:
-                    st.metric("= Equity Value", f"€{equity_value/1000000:.1f}M", help="Valor para accionistas")
+                    st.metric("= Equity Value", f"€{equity_value/1000000:.2f}M", help="Valor para accionistas")
                 
                 st.info("💡 El Equity Bridge muestra el camino desde el valor de la empresa hasta el valor para los accionistas")
 
