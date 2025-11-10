@@ -122,6 +122,8 @@ class ModeloFinanciero:
         self.activo_fijo_inicial = params_operativos.get('activo_fijo', 5_000_000)
         self.inventario_inicial = params_operativos.get('inventario', 1_000_000)
         self.clientes_inicial = params_operativos.get('clientes', 2_000_000)
+        self.otros_deudores_inicial = params_operativos.get('otros_deudores', 0)
+        self.admin_publica_deudora_inicial = params_operativos.get('admin_publica_deudora', 0)
         self.proveedores_inicial = params_operativos.get('proveedores', 1_500_000)
         self.pasivo_laboral = params_operativos.get('pasivo_laboral', 0)
         self.provisiones_laborales = params_operativos.get('provisiones_laborales', 0)
@@ -655,6 +657,9 @@ class ModeloFinanciero:
             
             # BAI y Beneficio Neto
             bai = ebit - gastos_financieros
+            # Impuestos operativos (sobre EBIT, para FCF)
+            impuestos_operativos = max(0, ebit * self.tasa_impuestos / 100)
+            # Impuestos contables (sobre BAI, para P&L)
             impuestos = max(0, bai * self.tasa_impuestos / 100)
             beneficio_neto = bai - impuestos
             
@@ -671,6 +676,7 @@ class ModeloFinanciero:
                 'ebit': ebit,
                 'gastos_financieros': gastos_financieros,
                 'bai': bai,
+                'impuestos_operativos': impuestos_operativos,
                 'impuestos': impuestos,
                 'beneficio_neto': beneficio_neto
             })
@@ -1582,7 +1588,8 @@ class ModeloFinanciero:
             fcf_data['CAPEX'].append(round(capex, 0))
             
             # Free Cash Flow
-            fcf = (pyl_df['EBITDA'].iloc[i] - 
+            # FCF correcto: usar EBIT (no EBITDA) porque depreciación ya está restada
+            fcf = (pyl_df['EBIT'].iloc[i] - 
                    impuestos_ebit - 
                    capex - 
                    wc_df['Variación WC'].iloc[i])

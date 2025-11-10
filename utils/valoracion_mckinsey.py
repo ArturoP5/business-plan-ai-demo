@@ -149,12 +149,12 @@ class ValoracionMcKinsey:
     def calcular_noplat(self, año: int) -> float:
         """
         Calcula NOPLAT (Net Operating Profit Less Adjusted Taxes)
+        Usa impuestos_operativos del P&L (sobre EBIT, no BAI)
         """
         ebit = self.modelo.pyl[self.modelo.pyl['año'] == año]['ebit'].values[0]
-        tax_rate = self.modelo.tasa_impuestos / 100
-        noplat = ebit * (1 - tax_rate)
+        impuestos_op = self.modelo.pyl[self.modelo.pyl['año'] == año]['impuestos_operativos'].values[0]
+        noplat = ebit - impuestos_op
         return noplat
-    
     def calcular_invested_capital(self, año: int) -> float:
         """
         Calcula el capital invertido
@@ -197,6 +197,8 @@ class ValoracionMcKinsey:
             # Para año 1, usar el cambio vs año 0
             wc_inicial = (
                 self.modelo.clientes_inicial +
+                self.modelo.otros_deudores_inicial +
+                self.modelo.admin_publica_deudora_inicial +
                 self.modelo.inventario_inicial -
                 self.modelo.proveedores_inicial
             )
@@ -205,7 +207,7 @@ class ValoracionMcKinsey:
             delta_ic = ic_current - ic_inicial
         
         # FCF = NOPLAT - Change in Invested Capital
-        # (Depreciation is already in Invested Capital change)
+        # Delta IC ya incluye CAPEX neto de depreciación (Δ AFN = CAPEX - D&A)
         fcf = noplat - delta_ic
         
         # Calculate ROIC

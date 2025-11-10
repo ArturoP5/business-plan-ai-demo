@@ -4575,6 +4575,8 @@ if generar_proyeccion or st.session_state.get("metodo_valoracion") in ["estandar
         'gastos_marketing_proyectados': [gastos_marketing_año1, gastos_marketing_año2, gastos_marketing_año3, gastos_marketing_año4, gastos_marketing_año5],
         'tesoreria': tesoreria_inicial,
         'clientes': clientes_inicial,
+        'otros_deudores': otros_deudores,
+        'admin_publica_deudora': admin_publica_deudora,
         'inventario': inventario_inicial,
         'proveedores': proveedores_inicial,
         'pasivo_laboral': pasivo_laboral_total,
