@@ -911,32 +911,14 @@ class ModeloFinanciero:
                 print(f"Tesorería objetivo: €{tes_objetivo:,.0f}")
             
             if año > 1 and tesoreria_disponible > tes_objetivo:
-                # HAY EXCESO → Invertir en LP
-                exceso = tesoreria_disponible - tes_objetivo
-                inv_lp_adicional = calcular_inversion_lp_adicional(
-                    exceso, ingresos, self.fase_empresa
-                )
-                inversiones_lp = inversiones_lp_ant + inv_lp_adicional
-                tesoreria_disponible -= inv_lp_adicional
-                
-                if año == 5:
-                    print(f"Exceso detectado: €{exceso:,.0f}")
-                    print(f"Inversión LP: €{inv_lp_adicional:,.0f}")
-                    print(f"Tesorería tras inversión: €{tesoreria_disponible:,.0f}")
+                # OPCIÓN B: Mantener excesos como tesorería (no invertir automáticamente)
+                # Excesos quedan disponibles para distribución o M&A
+                pass
             
             elif año > 1 and tesoreria_disponible < tes_minima:
-                # HAY DÉFICIT → Liquidar inversiones LP
-                deficit = tes_minima - tesoreria_disponible
-                lp_disponible = inversiones_lp_ant * 0.8
-                liquidacion = min(deficit, lp_disponible)
-                
-                inversiones_lp = inversiones_lp_ant - liquidacion
-                tesoreria_disponible += liquidacion
-                
-                if año == 5:
-                    print(f"Déficit detectado: €{deficit:,.0f}")
-                    print(f"Liquidación LP: €{liquidacion:,.0f}")
-                    print(f"Tesorería tras liquidación: €{tesoreria_disponible:,.0f}")
+                # OPCIÓN B: No liquidar inversiones LP automáticamente
+                # Si hay déficit, ir directo a financiación adicional
+                pass
             
             # Recalcular activos con inversiones_lp actualizadas
             activos_sin_tes = (
