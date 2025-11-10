@@ -5767,18 +5767,17 @@ if generar_proyeccion or st.session_state.get("metodo_valoracion") in ["estandar
                 with col1:
                     if st.button("📊 Generar Informe de Valoración", type="primary", use_container_width=True):
                         try:
-                            from utils.pdf_mckinsey_generator import generar_pdf_mckinsey
+                            from utils.pdf_valoracion_explicado import generar_pdf_valoracion_explicado
                             with st.spinner("Preparando informe ejecutivo..."):
                                 datos = st.session_state.datos_guardados
                                 resultado_mck = datos.get("resultado_mckinsey", {})
                             
                                 if resultado_mck:
-                                    pdf_bytes = generar_pdf_mckinsey(
+                                    pdf_bytes = generar_pdf_valoracion_explicado(
                                         datos_empresa=datos["datos_empresa"],
                                         resultado_mckinsey=resultado_mck,
                                         pyl_df=datos["pyl"],
                                         balance_df=datos.get("balance"),
-                                        analisis_ia=datos.get("analisis_ia", {}),
                                         fcf_df=datos.get("cash_flow"),
                                     )
                                     
