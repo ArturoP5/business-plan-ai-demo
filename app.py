@@ -984,6 +984,9 @@ with st.sidebar:
                             st.session_state["num_empleados_sidebar"] = int(dl["num_empleados"])
                         if "rotacion_anual" in dl:
                             st.session_state["rotacion_anual"] = float(dl["rotacion_anual"])
+                    # Actualizar año de fundación
+                    if "info_general" in datos_excel and "año_fundacion" in datos_excel["info_general"]:
+                        st.session_state["año_fundacion_sidebar"] = int(datos_excel["info_general"]["año_fundacion"])
                     # Actualizar ciclo de conversión
                     if "proyecciones" in datos_excel:
                         pc = datos_excel["proyecciones"]
@@ -6354,9 +6357,19 @@ if generar_proyeccion or st.session_state.get("metodo_valoracion") in ["estandar
                         fcf_final = fcf_data_mck[-1]['fcf']
                         años_fcf = len(fcf_data_mck)
                         print(f"DEBUG FCF: fcf_inicial={fcf_inicial}, fcf_final={fcf_final}, años={años_fcf}")
-                        cagr_fcf = ((fcf_final / fcf_inicial) ** (1/(años_fcf - 1)) - 1) * 100 if fcf_inicial > 0 and años_fcf > 1 else 0
+                        # Filtrar solo años con FCF positivo
+                        fcf_positivos = [(i+1, d['fcf']) for i, d in enumerate(fcf_data_mck) if d['fcf'] > 0]
+                        if len(fcf_positivos) >= 2:
+                            primer_anio_pos, fcf_inicial_pos = fcf_positivos[0]
+                            ultimo_anio, fcf_final = fcf_positivos[-1]
+                            anios_transcurridos = ultimo_anio - primer_anio_pos
+                            cagr_fcf = ((fcf_final / fcf_inicial_pos) ** (1/anios_transcurridos) - 1) * 100 if anios_transcurridos > 0 else 0
+                            nota_cagr = f" (Años {primer_anio_pos}-{ultimo_anio})" if primer_anio_pos > 1 else ""
+                        else:
+                            cagr_fcf = 0
+                            nota_cagr = ""
                         color_growth = "🟢" if cagr_fcf > 5 else "🟡" if cagr_fcf > 2 else "🔴"
-                        st.metric("CAGR FCF", f"{cagr_fcf:.1f}%", f"{color_growth} Target: >PIB+Inflación", help="Tasa de crecimiento anual compuesta del FCF. Debe superar el crecimiento económico")
+                        st.metric("CAGR FCF", f"{cagr_fcf:.1f}%{nota_cagr}", f"{color_growth} Target: >PIB+Inflación", help="Tasa de crecimiento anual compuesta del FCF. Calculado desde primer año positivo si año 1 es negativo")
             
             # Financiación del Capital de Trabajo si existe
             if 'financiacion_df' in st.session_state.datos_guardados:
