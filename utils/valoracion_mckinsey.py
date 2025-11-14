@@ -275,7 +275,8 @@ class ValoracionMcKinsey:
         enterprise_value = pv_fcf + pv_terminal
         
         
-        deuda_neta = self.modelo.calcular_deuda_total(1, incluir_pasivo_laboral=False) - self.modelo.tesoreria_inicial
+        deuda_neta = self.modelo.calcular_deuda_total(0, incluir_pasivo_laboral=False) - self.modelo.tesoreria_inicial
+        print(f"🔍 DEBUG: Deuda Total={self.modelo.calcular_deuda_total(0, incluir_pasivo_laboral=False):,.0f}, Tesorería={self.modelo.tesoreria_inicial:,.0f}, Deuda Neta={deuda_neta:,.0f}")
         equity_value = enterprise_value - deuda_neta
         
         # Calcular TIR del proyecto (retorno sobre equity)
