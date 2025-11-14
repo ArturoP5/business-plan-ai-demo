@@ -144,6 +144,17 @@ def get_simbolo_moneda():
 
 # ========================================================
 
+def guardar_datos_demo(datos_excel):
+    """
+    Guarda datos de empresa demo en session_state
+    Limpia estados previos para evitar mezcla de datos
+    """
+    st.session_state['datos_excel'] = datos_excel
+    # Limpiar gastos proyectados previos
+    for key in ['gastos_personal_proyectados', 'gastos_generales_proyectados', 'gastos_marketing_proyectados']:
+        if key in st.session_state:
+            del st.session_state[key]
+
 def mostrar_resumen_ejecutivo_profesional(num_empleados_actual=None, año_fundacion_actual=None):
     """Muestra el resumen ejecutivo profesional mejorado"""
     
@@ -1016,6 +1027,12 @@ with st.sidebar:
                         st.session_state["dias_inventario_proy"] = datos_excel["proyecciones"]["dias_inventario_proy"]
                     
                     # Cargar arrays de ciclo conversión
+                    
+                    # Marcar que se cargó Excel para forzar rerun UNA VEZ
+                    if 'excel_loaded' not in st.session_state:
+                        st.session_state['excel_loaded'] = True
+                        st.rerun()
+                    
             except Exception as e:
                 st.error(f"❌ Error al leer el archivo: {str(e)}")
                 datos_excel = None
@@ -1347,6 +1364,15 @@ with st.sidebar:
         # Cargar líneas de financiación desde Excel si existen
         if "lineas_financiacion" in datos_excel and datos_excel["lineas_financiacion"]:
             st.session_state.lineas_financiacion = datos_excel["lineas_financiacion"]
+            print("🔍 APP DEBUG: Guardando lineas_financiacion en session_state")
+            print("  Datos:", datos_excel.get("lineas_financiacion", []))
+            print(f"🔍 SESSION STATE después de guardar: {st.session_state.get('lineas_financiacion', 'NO EXISTE')}")
+            
+            # Limpiar keys de widgets de líneas para forzar recreación
+            keys_to_remove = [k for k in st.session_state.keys() if k.startswith(('tipo_', 'banco_', 'limite_', 'dispuesto_', 'tipo_interes_'))]
+            for key in keys_to_remove:
+                del st.session_state[key]
+            print(f"🧹 Limpiados {len(keys_to_remove)} widget keys de líneas financiación")
         else:
             # Valores por defecto si no hay líneas en el Excel
             st.session_state.lineas_financiacion = [{

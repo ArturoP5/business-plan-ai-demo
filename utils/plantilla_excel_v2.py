@@ -164,6 +164,7 @@ def crear_plantilla_v2():
     ws.append(["Resultados acumulados", 0, "Beneficios años anteriores"])
     ws.append(["Resultado del ejercicio", 0, "Resultado año actual"])
     ws.append(["Ajustes por cambios de valor", 0, "Ajustes valoración"])
+    ws.append(["Subvenciones", 0, "Subvenciones de capital"])
     
     # 7. DATOS LABORALES
     ws = wb.create_sheet("Datos_Laborales")
@@ -400,13 +401,15 @@ def crear_balance_check_completo(wb, año_actual):
     ws['G34'] = "=Balance_Patrimonio!B7"
     ws['F35'] = "Ajustes por valor"
     ws['G35'] = "=Balance_Patrimonio!B8"
-    ws['F36'] = "Total Patrimonio Neto"
-    ws['G36'] = "=SUM(G29:G35)"
-    ws['F36'].font = Font(bold=True)
+    ws['F36'] = "Subvenciones"
+    ws['G36'] = "=Balance_Patrimonio!B9"
+    ws['F37'] = "Total Patrimonio Neto"
+    ws['G37'] = "=SUM(G29:G36)"
+    ws['F37'].font = Font(bold=True)
     
     # TOTAL PASIVO + PN
-    ws['F38'] = "TOTAL PASIVO + PATRIMONIO"
-    ws['G38'] = "=G17+G26+G36"
+    ws['F39'] = "TOTAL PASIVO + PATRIMONIO"
+    ws['G39'] = "=G17+G26+G37"
     ws['F38'].font = Font(bold=True, size=12, color="FFFFFF")
     ws['F38'].fill = PatternFill(start_color="1E3A8A", end_color="1E3A8A", fill_type="solid")
     

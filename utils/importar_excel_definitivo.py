@@ -177,14 +177,18 @@ def importar_excel_definitivo(archivo):
         datos['lineas_financiacion'] = []
         df = pd.read_excel(archivo, sheet_name='Lineas_Financiacion')
         for _, row in df.iterrows():
+            print(f"🔍 DEBUG LINEAS: Procesando fila: {dict(row)}")
             if pd.notna(row.get('Tipo de Línea', '')) and '---' not in str(row.get('Tipo de Línea', '')):
                 if float(row.get('Límite', 0)) > 0:  # Solo incluir líneas con límite > 0
                     datos['lineas_financiacion'].append({
                         'tipo': str(row.get('Tipo de Línea', '')),
                         'banco': str(row.get('Banco', '')),
                         'limite': float(row.get('Límite', 0)),
-                        'dispuesto': float(row.get('Dispuesto', 0))
+                        'dispuesto': float(row.get('Dispuesto', 0)),
+                        'tipo_interes': float(row.get('Tipo (%)', 0)),
+                        'comision': float(row.get('Comisión (%)', 0))
                     })
+                    print(f"✅ LÍNEA AÑADIDA a lineas_financiacion")
         
         # 8. PARÁMETROS
         df = pd.read_excel(archivo, sheet_name='Proyecciones_Parametros')
