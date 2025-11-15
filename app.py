@@ -90,8 +90,9 @@ def check_password():
         return True
 
 # Verificar contraseña antes de mostrar la app
-if not check_password():
-    st.stop()
+# TEMPORAL: Password deshabilitado para desarrollo
+# if not check_password():
+#     st.stop()
 
 
 # ==================== FUNCIONES HELPER ====================
